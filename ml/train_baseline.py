@@ -43,6 +43,7 @@ DEFAULT_OUTPUT = ROOT / "artifacts" / "baseline"
 SEED = 2026
 TEST_SIZE = 0.20
 THRESHOLD = 0.5
+BOOTSTRAP_REPLICATES = 2000
 RECORDED_PACKAGES = (
     "cloudpickle", "et-xmlfile", "joblib", "narwhals", "numpy", "openpyxl", "pandas",
     "python-dateutil", "pytz", "PyYAML", "scikit-learn", "scipy", "six", "threadpoolctl", "tzdata",
@@ -108,6 +109,44 @@ def metrics(y_true: pd.Series | np.ndarray, probabilities: np.ndarray) -> dict[s
     }
 
 
+def stratified_bootstrap_intervals(
+    y_true: pd.Series | np.ndarray,
+    probabilities: np.ndarray,
+    *,
+    seed: int,
+) -> dict[str, dict[str, float]]:
+    """Percentile intervals, resampling within each observed class.
+
+    These intervals quantify finite holdout sampling variation conditional on
+    this holdout's class counts. They do not account for model-training or
+    external-population uncertainty.
+    """
+    y = np.asarray(y_true, dtype="int8")
+    p = np.asarray(probabilities, dtype="float64")
+    class_indices = {label: np.flatnonzero(y == label) for label in (0, 1)}
+    if any(indices.size == 0 for indices in class_indices.values()):
+        raise ValueError("Stratified bootstrap requires both classes in the holdout")
+
+    rng = np.random.default_rng(seed)
+    names = ("accuracy", "precision", "recall_sensitivity", "specificity", "f1", "roc_auc", "brier_score")
+    samples = {name: np.empty(BOOTSTRAP_REPLICATES, dtype="float64") for name in names}
+    for replicate in range(BOOTSTRAP_REPLICATES):
+        sampled = np.concatenate(
+            [rng.choice(indices, size=indices.size, replace=True) for indices in class_indices.values()]
+        )
+        result = metrics(y[sampled], p[sampled])
+        for name in names:
+            samples[name][replicate] = result[name]
+
+    return {
+        name: {
+            "lower_95": float(np.quantile(values, 0.025)),
+            "upper_95": float(np.quantile(values, 0.975)),
+        }
+        for name, values in samples.items()
+    }
+
+
 def evaluate_target(
     frame: pd.DataFrame,
     target: str,
@@ -141,6 +180,10 @@ def evaluate_target(
     estimator.fit(X_train, y_train)
     test_probabilities = estimator.predict_proba(X_test)[:, 1]
     holdout = metrics(y_test, test_probabilities)
+    target_seed = SEED + ("CAD", "LAD", "LCX", "RCA").index(target)
+    holdout["stratified_bootstrap_95_ci"] = stratified_bootstrap_intervals(
+        y_test, test_probabilities, seed=target_seed
+    )
     model_path = output_dir / f"{target.lower()}_logistic.joblib"
     joblib.dump(estimator, model_path)
 
@@ -169,6 +212,10 @@ def evaluate_target(
             },
         },
         "holdout_metrics": holdout,
+        "holdout_uncertainty_method": (
+            f"{BOOTSTRAP_REPLICATES} stratified percentile bootstrap replicates, resampling separately "
+            "within each holdout class; conditional on holdout class counts"
+        ),
         "calibration": "Not calibrated; Brier score is reported as a probability-quality baseline.",
         "model_file": model_path.name,
         "model_sha256": sha256(model_path),
