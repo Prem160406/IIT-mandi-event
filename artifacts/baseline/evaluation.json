@@ -1,5 +1,5 @@
 {
-  "created_at_utc": "2026-10-08T07:36:10.610591+00:00",
+  "created_at_utc": "2026-10-08T07:38:04.627320+00:00",
   "purpose": "Internal baseline only; not for diagnosis or treatment decisions.",
   "protocol": {
     "split": "stratified 80%/20% train/holdout",
@@ -416,8 +416,120 @@
           }
         }
       },
+      "training_only_threshold_tradeoffs": {
+        "source": "single 5-fold stratified out-of-fold predictions on training partition only",
+        "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
+        "table": [
+          {
+            "threshold": 0.25,
+            "predicted_positive_rate": 0.7396694214876033,
+            "accuracy": 0.859504132231405,
+            "precision": 0.888268156424581,
+            "recall_sensitivity": 0.9190751445086706,
+            "specificity": 0.7101449275362319,
+            "f1": 0.9034090909090909,
+            "roc_auc": 0.9253581301834631,
+            "brier_score": 0.11429638435069467,
+            "confusion_matrix_labels_0_1": [
+              [
+                49,
+                20
+              ],
+              [
+                14,
+                159
+              ]
+            ]
+          },
+          {
+            "threshold": 0.35,
+            "predicted_positive_rate": 0.71900826446281,
+            "accuracy": 0.8471074380165289,
+            "precision": 0.8908045977011494,
+            "recall_sensitivity": 0.8959537572254336,
+            "specificity": 0.7246376811594203,
+            "f1": 0.8933717579250721,
+            "roc_auc": 0.9253581301834631,
+            "brier_score": 0.11429638435069467,
+            "confusion_matrix_labels_0_1": [
+              [
+                50,
+                19
+              ],
+              [
+                18,
+                155
+              ]
+            ]
+          },
+          {
+            "threshold": 0.5,
+            "predicted_positive_rate": 0.6983471074380165,
+            "accuracy": 0.8512396694214877,
+            "precision": 0.9053254437869822,
+            "recall_sensitivity": 0.884393063583815,
+            "specificity": 0.7681159420289855,
+            "f1": 0.8947368421052632,
+            "roc_auc": 0.9253581301834631,
+            "brier_score": 0.11429638435069467,
+            "confusion_matrix_labels_0_1": [
+              [
+                53,
+                16
+              ],
+              [
+                20,
+                153
+              ]
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "predicted_positive_rate": 0.640495867768595,
+            "accuracy": 0.8264462809917356,
+            "precision": 0.9225806451612903,
+            "recall_sensitivity": 0.8265895953757225,
+            "specificity": 0.8260869565217391,
+            "f1": 0.8719512195121951,
+            "roc_auc": 0.9253581301834631,
+            "brier_score": 0.11429638435069467,
+            "confusion_matrix_labels_0_1": [
+              [
+                57,
+                12
+              ],
+              [
+                30,
+                143
+              ]
+            ]
+          },
+          {
+            "threshold": 0.75,
+            "predicted_positive_rate": 0.6157024793388429,
+            "accuracy": 0.8181818181818182,
+            "precision": 0.9328859060402684,
+            "recall_sensitivity": 0.8034682080924855,
+            "specificity": 0.855072463768116,
+            "f1": 0.8633540372670807,
+            "roc_auc": 0.9253581301834631,
+            "brier_score": 0.11429638435069467,
+            "confusion_matrix_labels_0_1": [
+              [
+                59,
+                10
+              ],
+              [
+                34,
+                139
+              ]
+            ]
+          }
+        ]
+      },
       "holdout_metrics": {
         "threshold": 0.5,
+        "predicted_positive_rate": 0.6557377049180327,
         "accuracy": 0.7868852459016393,
         "precision": 0.875,
         "recall_sensitivity": 0.813953488372093,
@@ -899,8 +1011,120 @@
           }
         }
       },
+      "training_only_threshold_tradeoffs": {
+        "source": "single 5-fold stratified out-of-fold predictions on training partition only",
+        "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
+        "table": [
+          {
+            "threshold": 0.25,
+            "predicted_positive_rate": 0.6611570247933884,
+            "accuracy": 0.7644628099173554,
+            "precision": 0.7625,
+            "recall_sensitivity": 0.8652482269503546,
+            "specificity": 0.6237623762376238,
+            "f1": 0.8106312292358804,
+            "roc_auc": 0.802893055262973,
+            "brier_score": 0.19333815879362407,
+            "confusion_matrix_labels_0_1": [
+              [
+                63,
+                38
+              ],
+              [
+                19,
+                122
+              ]
+            ]
+          },
+          {
+            "threshold": 0.35,
+            "predicted_positive_rate": 0.628099173553719,
+            "accuracy": 0.7479338842975206,
+            "precision": 0.7631578947368421,
+            "recall_sensitivity": 0.8226950354609929,
+            "specificity": 0.6435643564356436,
+            "f1": 0.7918088737201365,
+            "roc_auc": 0.802893055262973,
+            "brier_score": 0.19333815879362407,
+            "confusion_matrix_labels_0_1": [
+              [
+                65,
+                36
+              ],
+              [
+                25,
+                116
+              ]
+            ]
+          },
+          {
+            "threshold": 0.5,
+            "predicted_positive_rate": 0.5537190082644629,
+            "accuracy": 0.7148760330578512,
+            "precision": 0.7686567164179104,
+            "recall_sensitivity": 0.7304964539007093,
+            "specificity": 0.693069306930693,
+            "f1": 0.7490909090909091,
+            "roc_auc": 0.802893055262973,
+            "brier_score": 0.19333815879362407,
+            "confusion_matrix_labels_0_1": [
+              [
+                70,
+                31
+              ],
+              [
+                38,
+                103
+              ]
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "predicted_positive_rate": 0.47107438016528924,
+            "accuracy": 0.7148760330578512,
+            "precision": 0.8157894736842105,
+            "recall_sensitivity": 0.6595744680851063,
+            "specificity": 0.7920792079207921,
+            "f1": 0.7294117647058823,
+            "roc_auc": 0.802893055262973,
+            "brier_score": 0.19333815879362407,
+            "confusion_matrix_labels_0_1": [
+              [
+                80,
+                21
+              ],
+              [
+                48,
+                93
+              ]
+            ]
+          },
+          {
+            "threshold": 0.75,
+            "predicted_positive_rate": 0.41735537190082644,
+            "accuracy": 0.6859504132231405,
+            "precision": 0.8217821782178217,
+            "recall_sensitivity": 0.5886524822695035,
+            "specificity": 0.8217821782178217,
+            "f1": 0.6859504132231405,
+            "roc_auc": 0.802893055262973,
+            "brier_score": 0.19333815879362407,
+            "confusion_matrix_labels_0_1": [
+              [
+                83,
+                18
+              ],
+              [
+                58,
+                83
+              ]
+            ]
+          }
+        ]
+      },
       "holdout_metrics": {
         "threshold": 0.5,
+        "predicted_positive_rate": 0.5573770491803278,
         "accuracy": 0.7049180327868853,
         "precision": 0.7647058823529411,
         "recall_sensitivity": 0.7222222222222222,
@@ -1382,8 +1606,120 @@
           }
         }
       },
+      "training_only_threshold_tradeoffs": {
+        "source": "single 5-fold stratified out-of-fold predictions on training partition only",
+        "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
+        "table": [
+          {
+            "threshold": 0.25,
+            "predicted_positive_rate": 0.5743801652892562,
+            "accuracy": 0.6198347107438017,
+            "precision": 0.5107913669064749,
+            "recall_sensitivity": 0.7473684210526316,
+            "specificity": 0.5374149659863946,
+            "f1": 0.6068376068376068,
+            "roc_auc": 0.6779806659505908,
+            "brier_score": 0.2575853561889649,
+            "confusion_matrix_labels_0_1": [
+              [
+                79,
+                68
+              ],
+              [
+                24,
+                71
+              ]
+            ]
+          },
+          {
+            "threshold": 0.35,
+            "predicted_positive_rate": 0.5041322314049587,
+            "accuracy": 0.6322314049586777,
+            "precision": 0.5245901639344263,
+            "recall_sensitivity": 0.6736842105263158,
+            "specificity": 0.6054421768707483,
+            "f1": 0.5898617511520737,
+            "roc_auc": 0.6779806659505908,
+            "brier_score": 0.2575853561889649,
+            "confusion_matrix_labels_0_1": [
+              [
+                89,
+                58
+              ],
+              [
+                31,
+                64
+              ]
+            ]
+          },
+          {
+            "threshold": 0.5,
+            "predicted_positive_rate": 0.43388429752066116,
+            "accuracy": 0.6446280991735537,
+            "precision": 0.5428571428571428,
+            "recall_sensitivity": 0.6,
+            "specificity": 0.673469387755102,
+            "f1": 0.57,
+            "roc_auc": 0.6779806659505908,
+            "brier_score": 0.2575853561889649,
+            "confusion_matrix_labels_0_1": [
+              [
+                99,
+                48
+              ],
+              [
+                38,
+                57
+              ]
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "predicted_positive_rate": 0.3181818181818182,
+            "accuracy": 0.6198347107438017,
+            "precision": 0.5194805194805194,
+            "recall_sensitivity": 0.42105263157894735,
+            "specificity": 0.7482993197278912,
+            "f1": 0.46511627906976744,
+            "roc_auc": 0.6779806659505908,
+            "brier_score": 0.2575853561889649,
+            "confusion_matrix_labels_0_1": [
+              [
+                110,
+                37
+              ],
+              [
+                55,
+                40
+              ]
+            ]
+          },
+          {
+            "threshold": 0.75,
+            "predicted_positive_rate": 0.25206611570247933,
+            "accuracy": 0.628099173553719,
+            "precision": 0.5409836065573771,
+            "recall_sensitivity": 0.3473684210526316,
+            "specificity": 0.8095238095238095,
+            "f1": 0.4230769230769231,
+            "roc_auc": 0.6779806659505908,
+            "brier_score": 0.2575853561889649,
+            "confusion_matrix_labels_0_1": [
+              [
+                119,
+                28
+              ],
+              [
+                62,
+                33
+              ]
+            ]
+          }
+        ]
+      },
       "holdout_metrics": {
         "threshold": 0.5,
+        "predicted_positive_rate": 0.36065573770491804,
         "accuracy": 0.6065573770491803,
         "precision": 0.5,
         "recall_sensitivity": 0.4583333333333333,
@@ -1865,8 +2201,120 @@
           }
         }
       },
+      "training_only_threshold_tradeoffs": {
+        "source": "single 5-fold stratified out-of-fold predictions on training partition only",
+        "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
+        "table": [
+          {
+            "threshold": 0.25,
+            "predicted_positive_rate": 0.6074380165289256,
+            "accuracy": 0.5702479338842975,
+            "precision": 0.4557823129251701,
+            "recall_sensitivity": 0.7362637362637363,
+            "specificity": 0.47019867549668876,
+            "f1": 0.5630252100840336,
+            "roc_auc": 0.6768794119787498,
+            "brier_score": 0.25330794885935254,
+            "confusion_matrix_labels_0_1": [
+              [
+                71,
+                80
+              ],
+              [
+                24,
+                67
+              ]
+            ]
+          },
+          {
+            "threshold": 0.35,
+            "predicted_positive_rate": 0.5247933884297521,
+            "accuracy": 0.5950413223140496,
+            "precision": 0.47244094488188976,
+            "recall_sensitivity": 0.6593406593406593,
+            "specificity": 0.5562913907284768,
+            "f1": 0.5504587155963303,
+            "roc_auc": 0.6768794119787498,
+            "brier_score": 0.25330794885935254,
+            "confusion_matrix_labels_0_1": [
+              [
+                84,
+                67
+              ],
+              [
+                31,
+                60
+              ]
+            ]
+          },
+          {
+            "threshold": 0.5,
+            "predicted_positive_rate": 0.384297520661157,
+            "accuracy": 0.6528925619834711,
+            "precision": 0.5376344086021505,
+            "recall_sensitivity": 0.5494505494505495,
+            "specificity": 0.7152317880794702,
+            "f1": 0.5434782608695652,
+            "roc_auc": 0.6768794119787498,
+            "brier_score": 0.25330794885935254,
+            "confusion_matrix_labels_0_1": [
+              [
+                108,
+                43
+              ],
+              [
+                41,
+                50
+              ]
+            ]
+          },
+          {
+            "threshold": 0.65,
+            "predicted_positive_rate": 0.2809917355371901,
+            "accuracy": 0.6487603305785123,
+            "precision": 0.5441176470588235,
+            "recall_sensitivity": 0.4065934065934066,
+            "specificity": 0.7947019867549668,
+            "f1": 0.46540880503144655,
+            "roc_auc": 0.6768794119787498,
+            "brier_score": 0.25330794885935254,
+            "confusion_matrix_labels_0_1": [
+              [
+                120,
+                31
+              ],
+              [
+                54,
+                37
+              ]
+            ]
+          },
+          {
+            "threshold": 0.75,
+            "predicted_positive_rate": 0.23553719008264462,
+            "accuracy": 0.6363636363636364,
+            "precision": 0.5263157894736842,
+            "recall_sensitivity": 0.32967032967032966,
+            "specificity": 0.8211920529801324,
+            "f1": 0.40540540540540543,
+            "roc_auc": 0.6768794119787498,
+            "brier_score": 0.25330794885935254,
+            "confusion_matrix_labels_0_1": [
+              [
+                124,
+                27
+              ],
+              [
+                61,
+                30
+              ]
+            ]
+          }
+        ]
+      },
       "holdout_metrics": {
         "threshold": 0.5,
+        "predicted_positive_rate": 0.3442622950819672,
         "accuracy": 0.639344262295082,
         "precision": 0.5238095238095238,
         "recall_sensitivity": 0.4782608695652174,

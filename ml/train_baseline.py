@@ -31,7 +31,13 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import RepeatedStratifiedKFold, cross_validate, train_test_split
+from sklearn.model_selection import (
+    RepeatedStratifiedKFold,
+    StratifiedKFold,
+    cross_val_predict,
+    cross_validate,
+    train_test_split,
+)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -93,11 +99,17 @@ def make_pipeline(X: pd.DataFrame) -> Pipeline:
     return Pipeline([("preprocess", preprocess), ("classifier", classifier)])
 
 
-def metrics(y_true: pd.Series | np.ndarray, probabilities: np.ndarray) -> dict[str, Any]:
-    predictions = (probabilities >= THRESHOLD).astype("int8")
+def metrics(
+    y_true: pd.Series | np.ndarray,
+    probabilities: np.ndarray,
+    *,
+    threshold: float = THRESHOLD,
+) -> dict[str, Any]:
+    predictions = (probabilities >= threshold).astype("int8")
     matrix = confusion_matrix(y_true, predictions, labels=[0, 1])
     return {
-        "threshold": THRESHOLD,
+        "threshold": threshold,
+        "predicted_positive_rate": float(predictions.mean()),
         "accuracy": float(accuracy_score(y_true, predictions)),
         "precision": float(precision_score(y_true, predictions, zero_division=0)),
         "recall_sensitivity": float(recall_score(y_true, predictions, zero_division=0)),
@@ -176,6 +188,20 @@ def evaluate_target(
         n_jobs=1,
         error_score="raise",
     )
+    oof_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
+    oof_probabilities = cross_val_predict(
+        make_pipeline(X_train),
+        X_train,
+        y_train,
+        cv=oof_cv,
+        method="predict_proba",
+        n_jobs=1,
+        verbose=0,
+    )[:, 1]
+    threshold_table = [
+        metrics(y_train, oof_probabilities, threshold=threshold)
+        for threshold in (0.25, 0.35, 0.50, 0.65, 0.75)
+    ]
 
     estimator.fit(X_train, y_train)
     test_probabilities = estimator.predict_proba(X_test)[:, 1]
@@ -210,6 +236,11 @@ def evaluate_target(
                 name: {"mean": float(np.mean(scores[f"test_{name}"])), "std": float(np.std(scores[f"test_{name}"], ddof=1))}
                 for name in ("roc_auc", "f1", "recall")
             },
+        },
+        "training_only_threshold_tradeoffs": {
+            "source": "single 5-fold stratified out-of-fold predictions on training partition only",
+            "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
+            "table": threshold_table,
         },
         "holdout_metrics": holdout,
         "holdout_uncertainty_method": (

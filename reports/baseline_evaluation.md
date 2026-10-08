@@ -26,8 +26,19 @@
 
 Holdout contains 61 records per target. Sensitivity, specificity, precision and F1 use the fixed 0.5 threshold. The CAD label is the workbook's observed `Cath` label; one disagreement with the vessel-derived CAD rule remains unchanged and is documented in [`data_audit.md`](data_audit.md).
 
+## Threshold trade-offs (training data only)
+
+These are descriptive sensitivity/specificity pairs computed from one set of five-fold out-of-fold probabilities on the training partition. They show how the operating point changes; they do not select a threshold. Lower thresholds raise sensitivity while generally reducing specificity. Full precision, F1, predicted-positive rates and all threshold values are in the evaluation JSON.
+
+| Target | 0.25 Sensitivity / Specificity | 0.35 Sensitivity / Specificity | 0.50 Sensitivity / Specificity | 0.65 Sensitivity / Specificity | 0.75 Sensitivity / Specificity |
+|---|---:|---:|---:|---:|---:|
+| CAD | 0.919 / 0.710 | 0.896 / 0.725 | 0.884 / 0.768 | 0.827 / 0.826 | 0.803 / 0.855 |
+| LAD | 0.865 / 0.624 | 0.823 / 0.644 | 0.730 / 0.693 | 0.660 / 0.792 | 0.589 / 0.822 |
+| LCX | 0.747 / 0.537 | 0.674 / 0.605 | 0.600 / 0.673 | 0.421 / 0.748 | 0.347 / 0.810 |
+| RCA | 0.736 / 0.470 | 0.659 / 0.556 | 0.549 / 0.715 | 0.407 / 0.795 | 0.330 / 0.821 |
+
 ## Interpretation and next work
 
 The CAD and LAD baseline results look stronger than LCX and RCA on this one split, but a 303-record dataset and a 61-record holdout make the estimates noisy. The train-only CV spread and holdout differences show why these scores are not proof of generalization. Do not use them as clinical performance claims. In particular, the LCX/RCA operating-point metrics show substantial false negatives at the fixed threshold; changing a threshold requires an explicitly chosen use case and training-only analysis.
 
-Next M1 actions: inspect threshold trade-offs using training-only out-of-fold predictions; evaluate probability calibration within training data; compare a small set of predeclared alternatives without touching the holdout; run split sensitivity and feature-group ablations; and record all failures or unstable results. External validation is required before claims about performance in another population.
+Next M1 actions: evaluate probability calibration within training data; compare a small set of predeclared alternatives without touching the holdout; run split sensitivity and feature-group ablations; and record all failures or unstable results. External validation is required before claims about performance in another population.
