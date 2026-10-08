@@ -1,5 +1,5 @@
 {
-  "created_at_utc": "2026-10-08T07:52:58.683532+00:00",
+  "created_at_utc": "2026-10-08T08:01:21.860247+00:00",
   "purpose": "Internal baseline only; not for diagnosis or treatment decisions.",
   "protocol": {
     "split": "stratified 80%/20% train/holdout",
@@ -439,6 +439,121 @@
           "std": 0.02512464092944201,
           "folds_random_forest_higher": 7,
           "folds_compared": 15
+        }
+      },
+      "feature_group_ablation": {
+        "source": "config/features.yaml",
+        "method": "Remove one configured feature group at a time; compare logistic-regression CV on the exact same training folds.",
+        "interpretation": "Exploratory predictive ablation, not causal importance; groups may be correlated or redundant.",
+        "full_model_roc_auc_mean": 0.924247237356481,
+        "groups": {
+          "Demographic": {
+            "removed_feature_count": 17,
+            "removed_features": [
+              "Age",
+              "Weight",
+              "Length",
+              "Sex",
+              "BMI",
+              "DM",
+              "HTN",
+              "Current Smoker",
+              "EX-Smoker",
+              "FH",
+              "Obesity",
+              "CRF",
+              "CVA",
+              "Airway disease",
+              "Thyroid Disease",
+              "CHF",
+              "DLP"
+            ],
+            "roc_auc_mean": 0.8885163296087666,
+            "roc_auc_std": 0.05263747727294598,
+            "roc_auc_delta_vs_full_mean": -0.03573090774771448,
+            "paired_fold_delta_std": 0.027890790024556616,
+            "folds_ablation_higher": 1,
+            "folds_compared": 15,
+            "f1_mean": 0.8764172845511834,
+            "recall_mean": 0.8461624649859943
+          },
+          "Symptoms and examination": {
+            "removed_feature_count": 14,
+            "removed_features": [
+              "BP",
+              "PR",
+              "Edema",
+              "Weak Peripheral Pulse",
+              "Lung rales",
+              "Systolic Murmur",
+              "Diastolic Murmur",
+              "Typical Chest Pain",
+              "Dyspnea",
+              "Function Class",
+              "Atypical",
+              "Nonanginal",
+              "Exertional CP",
+              "LowTH Ang"
+            ],
+            "roc_auc_mean": 0.8715529288638532,
+            "roc_auc_std": 0.03739524687836987,
+            "roc_auc_delta_vs_full_mean": -0.052694308492627816,
+            "paired_fold_delta_std": 0.025363671817664975,
+            "folds_ablation_higher": 0,
+            "folds_compared": 15,
+            "f1_mean": 0.8549119248080082,
+            "recall_mean": 0.8188795518207285
+          },
+          "ECG": {
+            "removed_feature_count": 7,
+            "removed_features": [
+              "Q Wave",
+              "St Elevation",
+              "St Depression",
+              "Tinversion",
+              "LVH",
+              "Poor R Progression",
+              "BBB"
+            ],
+            "roc_auc_mean": 0.9180133591898297,
+            "roc_auc_std": 0.0451184312534016,
+            "roc_auc_delta_vs_full_mean": -0.006233878166651271,
+            "paired_fold_delta_std": 0.011450803672906469,
+            "folds_ablation_higher": 5,
+            "folds_compared": 15,
+            "f1_mean": 0.9004035152653349,
+            "recall_mean": 0.8803921568627453
+          },
+          "Laboratory and echo": {
+            "removed_feature_count": 17,
+            "removed_features": [
+              "FBS",
+              "CR",
+              "TG",
+              "LDL",
+              "HDL",
+              "BUN",
+              "ESR",
+              "HB",
+              "K",
+              "Na",
+              "WBC",
+              "Lymph",
+              "Neut",
+              "PLT",
+              "EF-TTE",
+              "Region RWMA",
+              "VHD"
+            ],
+            "roc_auc_mean": 0.9342189183365655,
+            "roc_auc_std": 0.03944486689407613,
+            "roc_auc_delta_vs_full_mean": 0.00997168098008432,
+            "paired_fold_delta_std": 0.0145114919531416,
+            "folds_ablation_higher": 11,
+            "folds_compared": 15,
+            "f1_mean": 0.8970237330224163,
+            "recall_mean": 0.8668347338935576
+          }
         }
       },
       "training_only_threshold_tradeoffs": {
@@ -9085,6 +9200,121 @@
           "folds_compared": 15
         }
       },
+      "feature_group_ablation": {
+        "source": "config/features.yaml",
+        "method": "Remove one configured feature group at a time; compare logistic-regression CV on the exact same training folds.",
+        "interpretation": "Exploratory predictive ablation, not causal importance; groups may be correlated or redundant.",
+        "full_model_roc_auc_mean": 0.8110323324732189,
+        "groups": {
+          "Demographic": {
+            "removed_feature_count": 17,
+            "removed_features": [
+              "Age",
+              "Weight",
+              "Length",
+              "Sex",
+              "BMI",
+              "DM",
+              "HTN",
+              "Current Smoker",
+              "EX-Smoker",
+              "FH",
+              "Obesity",
+              "CRF",
+              "CVA",
+              "Airway disease",
+              "Thyroid Disease",
+              "CHF",
+              "DLP"
+            ],
+            "roc_auc_mean": 0.8060141527875518,
+            "roc_auc_std": 0.04569301438888779,
+            "roc_auc_delta_vs_full_mean": -0.005018179685667371,
+            "paired_fold_delta_std": 0.045007205533785635,
+            "folds_ablation_higher": 7,
+            "folds_compared": 15,
+            "f1_mean": 0.7603073255976796,
+            "recall_mean": 0.7350574712643678
+          },
+          "Symptoms and examination": {
+            "removed_feature_count": 14,
+            "removed_features": [
+              "BP",
+              "PR",
+              "Edema",
+              "Weak Peripheral Pulse",
+              "Lung rales",
+              "Systolic Murmur",
+              "Diastolic Murmur",
+              "Typical Chest Pain",
+              "Dyspnea",
+              "Function Class",
+              "Atypical",
+              "Nonanginal",
+              "Exertional CP",
+              "LowTH Ang"
+            ],
+            "roc_auc_mean": 0.7840783094847136,
+            "roc_auc_std": 0.06518684363428981,
+            "roc_auc_delta_vs_full_mean": -0.02695402298850574,
+            "paired_fold_delta_std": 0.031243077530850122,
+            "folds_ablation_higher": 2,
+            "folds_compared": 15,
+            "f1_mean": 0.7510978146695251,
+            "recall_mean": 0.7136288998357965
+          },
+          "ECG": {
+            "removed_feature_count": 7,
+            "removed_features": [
+              "Q Wave",
+              "St Elevation",
+              "St Depression",
+              "Tinversion",
+              "LVH",
+              "Poor R Progression",
+              "BBB"
+            ],
+            "roc_auc_mean": 0.8228798185941044,
+            "roc_auc_std": 0.07299951683631813,
+            "roc_auc_delta_vs_full_mean": 0.011847486120885138,
+            "paired_fold_delta_std": 0.01687402123168786,
+            "folds_ablation_higher": 11,
+            "folds_compared": 15,
+            "f1_mean": 0.7801127259868248,
+            "recall_mean": 0.7586206896551725
+          },
+          "Laboratory and echo": {
+            "removed_feature_count": 17,
+            "removed_features": [
+              "FBS",
+              "CR",
+              "TG",
+              "LDL",
+              "HDL",
+              "BUN",
+              "ESR",
+              "HB",
+              "K",
+              "Na",
+              "WBC",
+              "Lymph",
+              "Neut",
+              "PLT",
+              "EF-TTE",
+              "Region RWMA",
+              "VHD"
+            ],
+            "roc_auc_mean": 0.7974478067088905,
+            "roc_auc_std": 0.05321317936411995,
+            "roc_auc_delta_vs_full_mean": -0.013584525764328736,
+            "paired_fold_delta_std": 0.03234705367615327,
+            "folds_ablation_higher": 4,
+            "folds_compared": 15,
+            "f1_mean": 0.7630491618148916,
+            "recall_mean": 0.742200328407225
+          }
+        }
+      },
       "training_only_threshold_tradeoffs": {
         "source": "single 5-fold stratified out-of-fold predictions on training partition only",
         "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
@@ -17729,6 +17959,121 @@
           "folds_compared": 15
         }
       },
+      "feature_group_ablation": {
+        "source": "config/features.yaml",
+        "method": "Remove one configured feature group at a time; compare logistic-regression CV on the exact same training folds.",
+        "interpretation": "Exploratory predictive ablation, not causal importance; groups may be correlated or redundant.",
+        "full_model_roc_auc_mean": 0.6866706997378503,
+        "groups": {
+          "Demographic": {
+            "removed_feature_count": 17,
+            "removed_features": [
+              "Age",
+              "Weight",
+              "Length",
+              "Sex",
+              "BMI",
+              "DM",
+              "HTN",
+              "Current Smoker",
+              "EX-Smoker",
+              "FH",
+              "Obesity",
+              "CRF",
+              "CVA",
+              "Airway disease",
+              "Thyroid Disease",
+              "CHF",
+              "DLP"
+            ],
+            "roc_auc_mean": 0.6339060294414196,
+            "roc_auc_std": 0.05182629343249911,
+            "roc_auc_delta_vs_full_mean": -0.05276467029643073,
+            "paired_fold_delta_std": 0.044912798025832194,
+            "folds_ablation_higher": 2,
+            "folds_compared": 15,
+            "f1_mean": 0.4993606178197121,
+            "recall_mean": 0.5228070175438597
+          },
+          "Symptoms and examination": {
+            "removed_feature_count": 14,
+            "removed_features": [
+              "BP",
+              "PR",
+              "Edema",
+              "Weak Peripheral Pulse",
+              "Lung rales",
+              "Systolic Murmur",
+              "Diastolic Murmur",
+              "Typical Chest Pain",
+              "Dyspnea",
+              "Function Class",
+              "Atypical",
+              "Nonanginal",
+              "Exertional CP",
+              "LowTH Ang"
+            ],
+            "roc_auc_mean": 0.6526678765880216,
+            "roc_auc_std": 0.04668737198872507,
+            "roc_auc_delta_vs_full_mean": -0.0340028231498286,
+            "paired_fold_delta_std": 0.04323323129410239,
+            "folds_ablation_higher": 3,
+            "folds_compared": 15,
+            "f1_mean": 0.5282679877930199,
+            "recall_mean": 0.5508771929824561
+          },
+          "ECG": {
+            "removed_feature_count": 7,
+            "removed_features": [
+              "Q Wave",
+              "St Elevation",
+              "St Depression",
+              "Tinversion",
+              "LVH",
+              "Poor R Progression",
+              "BBB"
+            ],
+            "roc_auc_mean": 0.7094938495664448,
+            "roc_auc_std": 0.04847825810252963,
+            "roc_auc_delta_vs_full_mean": 0.02282314982859448,
+            "paired_fold_delta_std": 0.015840326150805287,
+            "folds_ablation_higher": 14,
+            "folds_compared": 15,
+            "f1_mean": 0.5956221500797867,
+            "recall_mean": 0.6526315789473683
+          },
+          "Laboratory and echo": {
+            "removed_feature_count": 17,
+            "removed_features": [
+              "FBS",
+              "CR",
+              "TG",
+              "LDL",
+              "HDL",
+              "BUN",
+              "ESR",
+              "HB",
+              "K",
+              "Na",
+              "WBC",
+              "Lymph",
+              "Neut",
+              "PLT",
+              "EF-TTE",
+              "Region RWMA",
+              "VHD"
+            ],
+            "roc_auc_mean": 0.6933938294010888,
+            "roc_auc_std": 0.048991999025398116,
+            "roc_auc_delta_vs_full_mean": 0.006723129663238558,
+            "paired_fold_delta_std": 0.037404841951437895,
+            "folds_ablation_higher": 8,
+            "folds_compared": 15,
+            "f1_mean": 0.5589402069197341,
+            "recall_mean": 0.6105263157894737
+          }
+        }
+      },
       "training_only_threshold_tradeoffs": {
         "source": "single 5-fold stratified out-of-fold predictions on training partition only",
         "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
@@ -26371,6 +26716,121 @@
           "std": 0.04369920635191306,
           "folds_random_forest_higher": 8,
           "folds_compared": 15
+        }
+      },
+      "feature_group_ablation": {
+        "source": "config/features.yaml",
+        "method": "Remove one configured feature group at a time; compare logistic-regression CV on the exact same training folds.",
+        "interpretation": "Exploratory predictive ablation, not causal importance; groups may be correlated or redundant.",
+        "full_model_roc_auc_mean": 0.7116778804837661,
+        "groups": {
+          "Demographic": {
+            "removed_feature_count": 17,
+            "removed_features": [
+              "Age",
+              "Weight",
+              "Length",
+              "Sex",
+              "BMI",
+              "DM",
+              "HTN",
+              "Current Smoker",
+              "EX-Smoker",
+              "FH",
+              "Obesity",
+              "CRF",
+              "CVA",
+              "Airway disease",
+              "Thyroid Disease",
+              "CHF",
+              "DLP"
+            ],
+            "roc_auc_mean": 0.655954012869689,
+            "roc_auc_std": 0.053538808917777146,
+            "roc_auc_delta_vs_full_mean": -0.05572386761407702,
+            "paired_fold_delta_std": 0.054645360569574766,
+            "folds_ablation_higher": 3,
+            "folds_compared": 15,
+            "f1_mean": 0.5026966737508204,
+            "recall_mean": 0.5430799220272904
+          },
+          "Symptoms and examination": {
+            "removed_feature_count": 14,
+            "removed_features": [
+              "BP",
+              "PR",
+              "Edema",
+              "Weak Peripheral Pulse",
+              "Lung rales",
+              "Systolic Murmur",
+              "Diastolic Murmur",
+              "Typical Chest Pain",
+              "Dyspnea",
+              "Function Class",
+              "Atypical",
+              "Nonanginal",
+              "Exertional CP",
+              "LowTH Ang"
+            ],
+            "roc_auc_mean": 0.7094189775514056,
+            "roc_auc_std": 0.055911942907481374,
+            "roc_auc_delta_vs_full_mean": -0.002258902932360766,
+            "paired_fold_delta_std": 0.03522797880200045,
+            "folds_ablation_higher": 5,
+            "folds_compared": 15,
+            "f1_mean": 0.558565674524439,
+            "recall_mean": 0.5859649122807017
+          },
+          "ECG": {
+            "removed_feature_count": 7,
+            "removed_features": [
+              "Q Wave",
+              "St Elevation",
+              "St Depression",
+              "Tinversion",
+              "LVH",
+              "Poor R Progression",
+              "BBB"
+            ],
+            "roc_auc_mean": 0.7188543042193296,
+            "roc_auc_std": 0.05552992766068077,
+            "roc_auc_delta_vs_full_mean": 0.007176423735563524,
+            "paired_fold_delta_std": 0.024184118448690246,
+            "folds_ablation_higher": 8,
+            "folds_compared": 15,
+            "f1_mean": 0.5792253351352499,
+            "recall_mean": 0.6270955165692007
+          },
+          "Laboratory and echo": {
+            "removed_feature_count": 17,
+            "removed_features": [
+              "FBS",
+              "CR",
+              "TG",
+              "LDL",
+              "HDL",
+              "BUN",
+              "ESR",
+              "HB",
+              "K",
+              "Na",
+              "WBC",
+              "Lymph",
+              "Neut",
+              "PLT",
+              "EF-TTE",
+              "Region RWMA",
+              "VHD"
+            ],
+            "roc_auc_mean": 0.702354482382779,
+            "roc_auc_std": 0.07633696218163985,
+            "roc_auc_delta_vs_full_mean": -0.009323398100987234,
+            "paired_fold_delta_std": 0.06035897566649598,
+            "folds_ablation_higher": 7,
+            "folds_compared": 15,
+            "f1_mean": 0.5647137677767285,
+            "recall_mean": 0.6171539961013646
+          }
         }
       },
       "training_only_threshold_tradeoffs": {

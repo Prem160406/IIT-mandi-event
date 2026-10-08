@@ -76,8 +76,21 @@ To check repeatability against the particular 80/20 partition, the fixed raw log
 
 The vessel-target score ranges are broad, especially for LCX and RCA. This confirms that one split can give a materially different picture; reporting only the original holdout point estimates would overstate precision. Repeated random splits are an internal stability check, not independent validation.
 
+## Feature-group ablation (training CV only)
+
+One configured feature group at a time was removed from the logistic model and re-evaluated on the same 15 repeated training folds. The table reports mean ROC-AUC change relative to the full feature set and the number of folds where the ablated version scored higher. These are predictive ablations, not evidence that a group causes disease or should be excluded from a clinical assessment.
+
+| Target | Remove demographics | Remove symptoms/exam | Remove ECG | Remove laboratory/echo |
+|---|---:|---:|---:|---:|
+| CAD | −0.036 (1/15 folds higher) | −0.053 (0/15) | −0.006 (5/15) | +0.010 (11/15) |
+| LAD | −0.005 (7/15) | −0.027 (2/15) | +0.012 (11/15) | −0.014 (4/15) |
+| LCX | −0.053 (2/15) | −0.034 (3/15) | +0.023 (14/15) | +0.007 (8/15) |
+| RCA | −0.056 (3/15) | −0.002 (5/15) | +0.007 (8/15) | −0.009 (7/15) |
+
+ECG removal slightly improves mean AUC for LAD/LCX/RCA, while removing demographics reduces mean AUC for LCX/RCA in these folds. This could reflect useful signal, redundancy, noise or small-sample variation; the repeated folds are dependent and the group results are exploratory. Do not interpret this as a feature-selection rule. Full per-group fold metrics and feature membership are recorded in the JSON.
+
 ## Interpretation and next work
 
 The CAD and LAD baseline results look stronger than LCX and RCA on this one split, but a 303-record dataset and a 61-record holdout make the estimates noisy. The train-only CV spread and holdout differences show why these scores are not proof of generalization. Do not use them as clinical performance claims. In particular, the LCX/RCA operating-point metrics show substantial false negatives at the fixed threshold; changing a threshold requires an explicitly chosen use case and training-only analysis.
 
-Next M1 actions: build the explanation helper, run feature-group ablations, derive training-only operating points for any calibrated model considered for the app, and record failure modes. External validation is required before claims about performance in another population.
+Next M1 actions: integrate the explanation helper with M2's API, derive training-only operating points for any calibrated model considered for the app, and record remaining failure modes. External validation is required before claims about performance in another population.

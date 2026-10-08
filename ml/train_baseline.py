@@ -49,6 +49,7 @@ from ml.data_prep import DEFAULT_DATA_PATH, DEFAULT_TARGET_CONFIG, build_xy, loa
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "artifacts" / "baseline"
+DEFAULT_FEATURE_CONFIG = ROOT / "config" / "features.yaml"
 SEED = 2026
 TEST_SIZE = 0.20
 THRESHOLD = 0.5
@@ -65,6 +66,22 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def load_feature_groups(path: Path = DEFAULT_FEATURE_CONFIG) -> dict[str, list[str]]:
+    """Load feature ablation groups from the shared feature registry."""
+    import yaml
+
+    config = yaml.safe_load(path.read_text(encoding="utf-8"))
+    features = config.get("features") if isinstance(config, dict) else None
+    if not isinstance(features, list):
+        raise ValueError(f"Invalid feature configuration: {path}")
+    groups: dict[str, list[str]] = {}
+    for feature in features:
+        if not isinstance(feature, dict) or not feature.get("name") or not feature.get("group"):
+            raise ValueError(f"Invalid feature entry in {path}: {feature!r}")
+        groups.setdefault(str(feature["group"]), []).append(str(feature["name"]))
+    return groups
 
 
 def make_pipeline(X: pd.DataFrame, *, classifier_name: str = "logistic") -> Pipeline:
@@ -292,6 +309,40 @@ def evaluate_target(
         n_jobs=1,
         error_score="raise",
     )
+    feature_groups = load_feature_groups()
+    configured_features = {name for names in feature_groups.values() for name in names}
+    if configured_features != set(X.columns):
+        raise ValueError(
+            "Feature-group configuration must cover predictors exactly; "
+            f"missing={sorted(set(X.columns) - configured_features)}, "
+            f"extra={sorted(configured_features - set(X.columns))}"
+        )
+    ablation_results = {}
+    full_auc_scores = logistic_scores["test_roc_auc"]
+    for group_name, columns_to_remove in feature_groups.items():
+        X_ablated = X_train.drop(columns=columns_to_remove)
+        ablation_scores = cross_validate(
+            make_pipeline(X_ablated, classifier_name="logistic"),
+            X_ablated,
+            y_train,
+            cv=repeated_cv_splits,
+            scoring=scoring,
+            n_jobs=1,
+            error_score="raise",
+        )
+        paired_delta = ablation_scores["test_roc_auc"] - full_auc_scores
+        ablation_results[group_name] = {
+            "removed_feature_count": len(columns_to_remove),
+            "removed_features": columns_to_remove,
+            "roc_auc_mean": float(np.mean(ablation_scores["test_roc_auc"])),
+            "roc_auc_std": float(np.std(ablation_scores["test_roc_auc"], ddof=1)),
+            "roc_auc_delta_vs_full_mean": float(np.mean(paired_delta)),
+            "paired_fold_delta_std": float(np.std(paired_delta, ddof=1)),
+            "folds_ablation_higher": int(np.sum(paired_delta > 0)),
+            "folds_compared": int(len(repeated_cv_splits)),
+            "f1_mean": float(np.mean(ablation_scores["test_f1"])),
+            "recall_mean": float(np.mean(ablation_scores["test_recall"])),
+        }
     oof_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
     oof_probabilities = cross_val_predict(
         make_pipeline(X_train),
@@ -371,6 +422,13 @@ def evaluate_target(
                 "folds_random_forest_higher": int(np.sum(forest_scores["test_roc_auc"] > logistic_scores["test_roc_auc"])),
                 "folds_compared": int(len(repeated_cv_splits)),
             },
+        },
+        "feature_group_ablation": {
+            "source": "config/features.yaml",
+            "method": "Remove one configured feature group at a time; compare logistic-regression CV on the exact same training folds.",
+            "interpretation": "Exploratory predictive ablation, not causal importance; groups may be correlated or redundant.",
+            "full_model_roc_auc_mean": float(np.mean(full_auc_scores)),
+            "groups": ablation_results,
         },
         "training_only_threshold_tradeoffs": {
             "source": "single 5-fold stratified out-of-fold predictions on training partition only",
