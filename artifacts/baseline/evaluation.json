@@ -1,12 +1,15 @@
 {
-  "created_at_utc": "2026-10-08T07:38:04.627320+00:00",
+  "created_at_utc": "2026-10-08T07:44:45.906484+00:00",
   "purpose": "Internal baseline only; not for diagnosis or treatment decisions.",
   "protocol": {
     "split": "stratified 80%/20% train/holdout",
     "seed": 2026,
     "decision_threshold": 0.5,
-    "model": "class-weighted L2-regularized logistic regression",
-    "selection": "No hyperparameter selection; fixed baseline specification."
+    "models_compared": {
+      "logistic_regression": "L2-regularized, class_weight=balanced, C=1.0",
+      "random_forest": "300 trees, max_features=sqrt, min_samples_leaf=3, class_weight=balanced_subsample"
+    },
+    "selection": "Predeclared comparison on repeated CV of training partition only; holdout is reserved for the logistic baseline and not used to select between candidates."
   },
   "targets": [
     {
@@ -401,19 +404,41 @@
       "cross_validation": {
         "scheme": "5-fold stratified CV repeated 3 times on training partition only",
         "seed": 2026,
-        "metrics_mean_std": {
-          "roc_auc": {
-            "mean": 0.924247237356481,
-            "std": 0.042228981025045416
+        "candidates": {
+          "logistic_regression": {
+            "roc_auc": {
+              "mean": 0.924247237356481,
+              "std": 0.042228981025045416
+            },
+            "f1": {
+              "mean": 0.8901709783341195,
+              "std": 0.03933104767732317
+            },
+            "recall": {
+              "mean": 0.8670028011204483,
+              "std": 0.06636259134621841
+            }
           },
-          "f1": {
-            "mean": 0.8901709783341195,
-            "std": 0.03933104767732317
-          },
-          "recall": {
-            "mean": 0.8670028011204483,
-            "std": 0.06636259134621841
+          "random_forest": {
+            "roc_auc": {
+              "mean": 0.9214996767937945,
+              "std": 0.05123233751803256
+            },
+            "f1": {
+              "mean": 0.9072128176983191,
+              "std": 0.037667524093705995
+            },
+            "recall": {
+              "mean": 0.9248179271708684,
+              "std": 0.049909242705702975
+            }
           }
+        },
+        "paired_roc_auc_difference_random_forest_minus_logistic": {
+          "mean": -0.002747560562686613,
+          "std": 0.02512464092944201,
+          "folds_random_forest_higher": 7,
+          "folds_compared": 15
         }
       },
       "training_only_threshold_tradeoffs": {
@@ -996,19 +1021,41 @@
       "cross_validation": {
         "scheme": "5-fold stratified CV repeated 3 times on training partition only",
         "seed": 2026,
-        "metrics_mean_std": {
-          "roc_auc": {
-            "mean": 0.8110323324732189,
-            "std": 0.07097537997736275
+        "candidates": {
+          "logistic_regression": {
+            "roc_auc": {
+              "mean": 0.8110323324732189,
+              "std": 0.07097537997736275
+            },
+            "f1": {
+              "mean": 0.7542092318216876,
+              "std": 0.0644798411400608
+            },
+            "recall": {
+              "mean": 0.7300492610837438,
+              "std": 0.07365991114146565
+            }
           },
-          "f1": {
-            "mean": 0.7542092318216876,
-            "std": 0.0644798411400608
-          },
-          "recall": {
-            "mean": 0.7300492610837438,
-            "std": 0.07365991114146565
+          "random_forest": {
+            "roc_auc": {
+              "mean": 0.8310008601141605,
+              "std": 0.056916576141529916
+            },
+            "f1": {
+              "mean": 0.8022999608931699,
+              "std": 0.03928596611079386
+            },
+            "recall": {
+              "mean": 0.834646962233169,
+              "std": 0.058383934780436984
+            }
           }
+        },
+        "paired_roc_auc_difference_random_forest_minus_logistic": {
+          "mean": 0.01996852764094145,
+          "std": 0.04872129861302012,
+          "folds_random_forest_higher": 9,
+          "folds_compared": 15
         }
       },
       "training_only_threshold_tradeoffs": {
@@ -1591,19 +1638,41 @@
       "cross_validation": {
         "scheme": "5-fold stratified CV repeated 3 times on training partition only",
         "seed": 2026,
-        "metrics_mean_std": {
-          "roc_auc": {
-            "mean": 0.6866706997378503,
-            "std": 0.04677239622867031
+        "candidates": {
+          "logistic_regression": {
+            "roc_auc": {
+              "mean": 0.6866706997378503,
+              "std": 0.04677239622867031
+            },
+            "f1": {
+              "mean": 0.5737736720490528,
+              "std": 0.05278849110326633
+            },
+            "recall": {
+              "mean": 0.6070175438596492,
+              "std": 0.07407700532094703
+            }
           },
-          "f1": {
-            "mean": 0.5737736720490528,
-            "std": 0.05278849110326633
-          },
-          "recall": {
-            "mean": 0.6070175438596492,
-            "std": 0.07407700532094703
+          "random_forest": {
+            "roc_auc": {
+              "mean": 0.7278362573099415,
+              "std": 0.06997370442564729
+            },
+            "f1": {
+              "mean": 0.521143541937949,
+              "std": 0.07954452317720374
+            },
+            "recall": {
+              "mean": 0.47017543859649125,
+              "std": 0.0942902310518492
+            }
           }
+        },
+        "paired_roc_auc_difference_random_forest_minus_logistic": {
+          "mean": 0.04116555757209114,
+          "std": 0.060045839402384976,
+          "folds_random_forest_higher": 9,
+          "folds_compared": 15
         }
       },
       "training_only_threshold_tradeoffs": {
@@ -2186,19 +2255,41 @@
       "cross_validation": {
         "scheme": "5-fold stratified CV repeated 3 times on training partition only",
         "seed": 2026,
-        "metrics_mean_std": {
-          "roc_auc": {
-            "mean": 0.7116778804837661,
-            "std": 0.06379257197257304
+        "candidates": {
+          "logistic_regression": {
+            "roc_auc": {
+              "mean": 0.7116778804837661,
+              "std": 0.06379257197257304
+            },
+            "f1": {
+              "mean": 0.5695130775614897,
+              "std": 0.05397947705299949
+            },
+            "recall": {
+              "mean": 0.6015594541910332,
+              "std": 0.09285618140922182
+            }
           },
-          "f1": {
-            "mean": 0.5695130775614897,
-            "std": 0.05397947705299949
-          },
-          "recall": {
-            "mean": 0.6015594541910332,
-            "std": 0.09285618140922182
+          "random_forest": {
+            "roc_auc": {
+              "mean": 0.7143151187406989,
+              "std": 0.051935921689604043
+            },
+            "f1": {
+              "mean": 0.45693497241736025,
+              "std": 0.07146278206966741
+            },
+            "recall": {
+              "mean": 0.3896686159844055,
+              "std": 0.0940909702598682
+            }
           }
+        },
+        "paired_roc_auc_difference_random_forest_minus_logistic": {
+          "mean": 0.0026372382569326428,
+          "std": 0.04369920635191306,
+          "folds_random_forest_higher": 8,
+          "folds_compared": 15
         }
       },
       "training_only_threshold_tradeoffs": {

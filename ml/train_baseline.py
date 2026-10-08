@@ -1,4 +1,4 @@
-"""Train and evaluate leakage-safe logistic-regression baselines.
+"""Evaluate leakage-safe baselines and compare a predeclared tree candidate.
 
 This is an internal prototype baseline, not a clinical model. The holdout is
 reserved for one final evaluation; preprocessing is fitted within each fold.
@@ -21,6 +21,7 @@ import pandas as pd
 import sklearn
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -64,7 +65,7 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def make_pipeline(X: pd.DataFrame) -> Pipeline:
+def make_pipeline(X: pd.DataFrame, *, classifier_name: str = "logistic") -> Pipeline:
     """Infer numeric and categorical columns, fitting all transforms in-pipeline."""
     numeric = X.select_dtypes(include=["number"]).columns.tolist()
     categorical = [column for column in X.columns if column not in numeric]
@@ -89,13 +90,25 @@ def make_pipeline(X: pd.DataFrame) -> Pipeline:
         raise ValueError("No predictor columns available after leakage removal")
 
     preprocess = ColumnTransformer(transformers=transformers, remainder="drop")
-    classifier = LogisticRegression(
-        C=1.0,
-        class_weight="balanced",
-        max_iter=3000,
-        solver="liblinear",
-        random_state=SEED,
-    )
+    if classifier_name == "logistic":
+        classifier = LogisticRegression(
+            C=1.0,
+            class_weight="balanced",
+            max_iter=3000,
+            solver="liblinear",
+            random_state=SEED,
+        )
+    elif classifier_name == "random_forest":
+        classifier = RandomForestClassifier(
+            n_estimators=300,
+            max_features="sqrt",
+            min_samples_leaf=3,
+            class_weight="balanced_subsample",
+            n_jobs=1,
+            random_state=SEED,
+        )
+    else:
+        raise ValueError(f"Unknown classifier: {classifier_name}")
     return Pipeline([("preprocess", preprocess), ("classifier", classifier)])
 
 
@@ -178,13 +191,18 @@ def evaluate_target(
         X, y, test_size=TEST_SIZE, random_state=SEED, stratify=y
     )
     cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=3, random_state=SEED)
-    estimator = make_pipeline(X_train)
-    scores = cross_validate(
-        estimator,
+    repeated_cv_splits = list(cv.split(X_train, y_train))
+    scoring = {"roc_auc": "roc_auc", "f1": "f1", "recall": "recall"}
+    estimator = make_pipeline(X_train, classifier_name="logistic")
+    logistic_scores = cross_validate(
+        estimator, X_train, y_train, cv=repeated_cv_splits, scoring=scoring, n_jobs=1, error_score="raise"
+    )
+    forest_scores = cross_validate(
+        make_pipeline(X_train, classifier_name="random_forest"),
         X_train,
         y_train,
-        cv=cv,
-        scoring={"roc_auc": "roc_auc", "f1": "f1", "recall": "recall"},
+        cv=repeated_cv_splits,
+        scoring=scoring,
         n_jobs=1,
         error_score="raise",
     )
@@ -232,9 +250,21 @@ def evaluate_target(
         "cross_validation": {
             "scheme": "5-fold stratified CV repeated 3 times on training partition only",
             "seed": SEED,
-            "metrics_mean_std": {
-                name: {"mean": float(np.mean(scores[f"test_{name}"])), "std": float(np.std(scores[f"test_{name}"], ddof=1))}
-                for name in ("roc_auc", "f1", "recall")
+            "candidates": {
+                "logistic_regression": {
+                    name: {"mean": float(np.mean(logistic_scores[f"test_{name}"])), "std": float(np.std(logistic_scores[f"test_{name}"], ddof=1))}
+                    for name in ("roc_auc", "f1", "recall")
+                },
+                "random_forest": {
+                    name: {"mean": float(np.mean(forest_scores[f"test_{name}"])), "std": float(np.std(forest_scores[f"test_{name}"], ddof=1))}
+                    for name in ("roc_auc", "f1", "recall")
+                },
+            },
+            "paired_roc_auc_difference_random_forest_minus_logistic": {
+                "mean": float(np.mean(forest_scores["test_roc_auc"] - logistic_scores["test_roc_auc"])),
+                "std": float(np.std(forest_scores["test_roc_auc"] - logistic_scores["test_roc_auc"], ddof=1)),
+                "folds_random_forest_higher": int(np.sum(forest_scores["test_roc_auc"] > logistic_scores["test_roc_auc"])),
+                "folds_compared": int(len(repeated_cv_splits)),
             },
         },
         "training_only_threshold_tradeoffs": {
@@ -279,8 +309,11 @@ def main() -> None:
             "split": f"stratified {1 - TEST_SIZE:.0%}/{TEST_SIZE:.0%} train/holdout",
             "seed": SEED,
             "decision_threshold": THRESHOLD,
-            "model": "class-weighted L2-regularized logistic regression",
-            "selection": "No hyperparameter selection; fixed baseline specification.",
+            "models_compared": {
+                "logistic_regression": "L2-regularized, class_weight=balanced, C=1.0",
+                "random_forest": "300 trees, max_features=sqrt, min_samples_leaf=3, class_weight=balanced_subsample",
+            },
+            "selection": "Predeclared comparison on repeated CV of training partition only; holdout is reserved for the logistic baseline and not used to select between candidates.",
         },
         "targets": results,
     }

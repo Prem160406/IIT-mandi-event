@@ -37,8 +37,21 @@ These are descriptive sensitivity/specificity pairs computed from one set of fiv
 | LCX | 0.747 / 0.537 | 0.674 / 0.605 | 0.600 / 0.673 | 0.421 / 0.748 | 0.347 / 0.810 |
 | RCA | 0.736 / 0.470 | 0.659 / 0.556 | 0.549 / 0.715 | 0.407 / 0.795 | 0.330 / 0.821 |
 
+## Predeclared model comparison (training CV only)
+
+The fixed candidate set compares L2 logistic regression with a class-balanced random forest (300 trees, square-root feature sampling, minimum leaf size 3). Both use the same repeated stratified folds and fold-local preprocessing. `Δ AUC` is the mean paired fold difference (forest minus logistic); the fold-win count is descriptive because the repeated folds are correlated, not an independent significance test.
+
+| Target | Logistic AUC (mean ± SD) | Forest AUC (mean ± SD) | Δ AUC (RF − LR) | RF higher AUC folds | Logistic F1 | Forest F1 | Logistic recall | Forest recall |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| CAD | 0.924 ± 0.042 | 0.921 ± 0.051 | −0.003 | 7 / 15 | 0.890 | 0.907 | 0.867 | 0.925 |
+| LAD | 0.811 ± 0.071 | 0.831 ± 0.057 | +0.020 | 9 / 15 | 0.754 | 0.802 | 0.730 | 0.835 |
+| LCX | 0.687 ± 0.047 | 0.728 ± 0.070 | +0.041 | 9 / 15 | 0.574 | 0.521 | 0.607 | 0.470 |
+| RCA | 0.712 ± 0.064 | 0.714 ± 0.052 | +0.003 | 8 / 15 | 0.570 | 0.457 | 0.602 | 0.390 |
+
+The forest has a modest mean AUC increase for LCX, but it does not improve that target's mean F1 or recall at the fixed threshold; the direction is not consistent across folds. For CAD and RCA, mean AUC is nearly unchanged. These results do not establish a reliable winner. The logistic models remain the saved baseline, and the untouched holdout has only been used for those baseline estimates; no forest holdout score is reported.
+
 ## Interpretation and next work
 
 The CAD and LAD baseline results look stronger than LCX and RCA on this one split, but a 303-record dataset and a 61-record holdout make the estimates noisy. The train-only CV spread and holdout differences show why these scores are not proof of generalization. Do not use them as clinical performance claims. In particular, the LCX/RCA operating-point metrics show substantial false negatives at the fixed threshold; changing a threshold requires an explicitly chosen use case and training-only analysis.
 
-Next M1 actions: evaluate probability calibration within training data; compare a small set of predeclared alternatives without touching the holdout; run split sensitivity and feature-group ablations; and record all failures or unstable results. External validation is required before claims about performance in another population.
+Next M1 actions: evaluate probability calibration within training data; run split sensitivity and feature-group ablations; and record all failures or unstable results. External validation is required before claims about performance in another population.
