@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
 import platform
 from datetime import datetime, timezone
@@ -42,6 +43,10 @@ DEFAULT_OUTPUT = ROOT / "artifacts" / "baseline"
 SEED = 2026
 TEST_SIZE = 0.20
 THRESHOLD = 0.5
+RECORDED_PACKAGES = (
+    "cloudpickle", "et-xmlfile", "joblib", "narwhals", "numpy", "openpyxl", "pandas",
+    "python-dateutil", "pytz", "PyYAML", "scikit-learn", "scipy", "six", "threadpoolctl", "tzdata",
+)
 
 
 def sha256(path: Path) -> str:
@@ -167,7 +172,11 @@ def evaluate_target(
         "calibration": "Not calibrated; Brier score is reported as a probability-quality baseline.",
         "model_file": model_path.name,
         "model_sha256": sha256(model_path),
-        "versions": {"python": platform.python_version(), "scikit_learn": sklearn.__version__},
+        "versions": {
+            "python": platform.python_version(),
+            "scikit_learn": sklearn.__version__,
+            "packages": {name: importlib.metadata.version(name) for name in RECORDED_PACKAGES},
+        },
     }
 
 

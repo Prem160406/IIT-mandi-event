@@ -927,7 +927,7 @@ python -m ml.train_baseline
 uvicorn backend.app.main:app --reload --port 8000
 ```
 
-The ML audit and baseline commands are usable before the API exists. `ml.train_baseline` writes model files and `evaluation.json` under `artifacts/baseline/`; it does not tune against the holdout, and its probabilities are not calibrated yet. Keep generated artifacts local until the team selects a model for integration. Use Python 3.11 for the current shared setup; the dependency ranges in `requirements.txt` are compatibility bounds, and exact lockfile versions still need to be agreed before final handoff.
+The ML audit and baseline commands are usable before the API exists. `ml.train_baseline` writes model files and `evaluation.json` under `artifacts/baseline/`; it does not tune against the holdout, and its probabilities are not calibrated yet. These first baseline artifacts are committed for teammate handoff, but are not final model selections. Use Python 3.12 with the exact package versions in `requirements.txt` to reproduce this run; model files should be loaded only from this trusted repository and with the recorded scikit-learn version.
 
 Frontend:
 
