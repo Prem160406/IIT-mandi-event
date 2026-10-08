@@ -63,8 +63,21 @@ A sigmoid (Platt) calibrator was predeclared and fitted with five-fold stratifie
 
 The calibrated probabilities have similar AUCs and lower Brier point estimates on this holdout, but most paired intervals include zero. At a fixed `0.5` cutoff, calibrated LCX/RCA sensitivities are especially low. Calibration changes probability scale; it does not preserve the raw model's operating point. Therefore the sigmoid models are saved as experimental artifacts and are not selected for the application. If we later use them, threshold trade-offs must be recomputed from training-only cross-fitted calibrated probabilities for the chosen use case.
 
+## Split sensitivity
+
+To check repeatability against the particular 80/20 partition, the fixed raw logistic model was retrained and scored over 25 repeated stratified 80/20 splits. No hyperparameters were changed. The values below are the 5th and 95th percentiles across those splits, not confidence intervals: the splits overlap and are dependent. Exact row indices and per-split metrics are in the JSON for reproducibility.
+
+| Target | ROC-AUC, q05–q95 | Sensitivity, q05–q95 | Specificity, q05–q95 | F1, q05–q95 |
+|---|---:|---:|---:|---:|
+| CAD | 0.870–0.952 | 0.791–0.926 | 0.667–0.933 | 0.840–0.925 |
+| LAD | 0.760–0.874 | 0.589–0.806 | 0.608–0.760 | 0.648–0.799 |
+| LCX | 0.583–0.786 | 0.425–0.708 | 0.524–0.757 | 0.468–0.664 |
+| RCA | 0.643–0.821 | 0.478–0.730 | 0.584–0.789 | 0.491–0.650 |
+
+The vessel-target score ranges are broad, especially for LCX and RCA. This confirms that one split can give a materially different picture; reporting only the original holdout point estimates would overstate precision. Repeated random splits are an internal stability check, not independent validation.
+
 ## Interpretation and next work
 
 The CAD and LAD baseline results look stronger than LCX and RCA on this one split, but a 303-record dataset and a 61-record holdout make the estimates noisy. The train-only CV spread and holdout differences show why these scores are not proof of generalization. Do not use them as clinical performance claims. In particular, the LCX/RCA operating-point metrics show substantial false negatives at the fixed threshold; changing a threshold requires an explicitly chosen use case and training-only analysis.
 
-Next M1 actions: evaluate probability calibration within training data; run split sensitivity and feature-group ablations; and record all failures or unstable results. External validation is required before claims about performance in another population.
+Next M1 actions: build the explanation helper, run feature-group ablations, derive training-only operating points for any calibrated model considered for the app, and record failure modes. External validation is required before claims about performance in another population.

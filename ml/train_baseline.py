@@ -35,6 +35,7 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import (
     RepeatedStratifiedKFold,
+    StratifiedShuffleSplit,
     StratifiedKFold,
     cross_val_predict,
     cross_validate,
@@ -204,6 +205,59 @@ def stratified_bootstrap_brier_difference(
     }
 
 
+def split_sensitivity(
+    X: pd.DataFrame,
+    y: pd.Series,
+    *,
+    repeats: int = 25,
+) -> dict[str, Any]:
+    """Measure fixed-model score variation over repeated stratified 80/20 splits."""
+    splitter = StratifiedShuffleSplit(n_splits=repeats, test_size=TEST_SIZE, random_state=SEED)
+    metric_names = ("roc_auc", "sensitivity", "specificity", "f1", "brier_score")
+    values: dict[str, list[float]] = {name: [] for name in metric_names}
+    run_records = []
+    for split_number, (train_indices, test_indices) in enumerate(splitter.split(X, y), start=1):
+        model = make_pipeline(X.iloc[train_indices], classifier_name="logistic")
+        y_train = y.iloc[train_indices]
+        y_test = y.iloc[test_indices]
+        model.fit(X.iloc[train_indices], y_train)
+        probabilities = model.predict_proba(X.iloc[test_indices])[:, 1]
+        result = metrics(y_test, probabilities)
+        selected = {
+            "roc_auc": result["roc_auc"],
+            "sensitivity": result["recall_sensitivity"],
+            "specificity": result["specificity"],
+            "f1": result["f1"],
+            "brier_score": result["brier_score"],
+        }
+        for name, value in selected.items():
+            values[name].append(float(value))
+        run_records.append(
+            {
+                "split_number": split_number,
+                "train_row_indices_zero_based": X.index[train_indices].tolist(),
+                "holdout_row_indices_zero_based": X.index[test_indices].tolist(),
+                "metrics": selected,
+            }
+        )
+
+    return {
+        "method": "25 repeated stratified 80/20 splits using the fixed logistic-regression specification",
+        "seed": SEED,
+        "interpretation": "Between-split empirical spread, not a confidence interval; splits overlap and are dependent.",
+        "summary": {
+            name: {
+                "mean": float(np.mean(samples)),
+                "std": float(np.std(samples, ddof=1)),
+                "q05": float(np.quantile(samples, 0.05)),
+                "q95": float(np.quantile(samples, 0.95)),
+            }
+            for name, samples in values.items()
+        },
+        "runs": run_records,
+    }
+
+
 def evaluate_target(
     frame: pd.DataFrame,
     target: str,
@@ -252,6 +306,7 @@ def evaluate_target(
         metrics(y_train, oof_probabilities, threshold=threshold)
         for threshold in (0.25, 0.35, 0.50, 0.65, 0.75)
     ]
+    split_sensitivity_results = split_sensitivity(X, y)
 
     estimator.fit(X_train, y_train)
     test_probabilities = estimator.predict_proba(X_test)[:, 1]
@@ -322,6 +377,7 @@ def evaluate_target(
             "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
             "table": threshold_table,
         },
+        "split_sensitivity": split_sensitivity_results,
         "holdout_metrics": holdout,
         "sigmoid_calibrated_holdout_metrics": calibrated_holdout,
         "calibration_method": {
