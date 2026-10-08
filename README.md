@@ -167,9 +167,9 @@ Check the real names with `df.columns` first, they can differ slightly (spaces, 
 | Symptoms and examination | BP, PR, Edema, Weak Peripheral Pulse, Lung rales, Systolic Murmur, Diastolic Murmur, Typical Chest Pain, Dyspnea, Function Class, Atypical, Nonanginal, Exertional CP, LowTH Ang |
 | ECG | Q Wave, St Elevation, St Depression, Tinversion, LVH, Poor R Progression, BBB |
 | Laboratory and echo | FBS, CR, TG, LDL, HDL, BUN, ESR, HB, K, Na, WBC, Lymph, Neut, PLT, EF-TTE, Region RWMA, VHD |
-| Targets and labels | Cath, LAD, LCX, RCA, CAD (overall label, last column) |
+| Targets and labels | Cath (observed overall CAD label), LAD, LCX, RCA. The organizer workbook has no separate `CAD` column. |
 
-First thing M1 must do: open the data, confirm which column is the overall CAD label (Cath vs the last CAD column), and write it down in `config/targets.yaml`.
+M1 audited the organizer-provided workbook and confirmed `Cath` is the observed overall CAD label; the workbook has no separate `CAD` column. The one record where `Cath` disagrees with the vessel-derived rule is retained and documented for sensitivity analysis in `reports/data_audit.md` and `config/targets.yaml`.
 
 ### 5.2 Columns that must NEVER be inputs
 
@@ -916,15 +916,18 @@ If time is very short, protect these in order: (1) correct models with proper va
 Backend and ML:
 
 ```powershell
-git clone <repo-url>
-cd cardiac-risk-3d
+git clone https://github.com/Prem160406/IIT-mandi-event.git
+cd IIT-mandi-event
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-# If PowerShell blocks the script, run once:
-# Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-pip install -r requirements.txt
+# If PowerShell blocks activation, use: .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
+python -m ml.data_audit
+python -m ml.train_baseline
 uvicorn backend.app.main:app --reload --port 8000
 ```
+
+The ML audit and baseline commands are usable before the API exists. `ml.train_baseline` writes model files and `evaluation.json` under `artifacts/baseline/`; it does not tune against the holdout, and its probabilities are not calibrated yet. Keep generated artifacts local until the team selects a model for integration. Use Python 3.11 for the current shared setup; the dependency ranges in `requirements.txt` are compatibility bounds, and exact lockfile versions still need to be agreed before final handoff.
 
 Frontend:
 

@@ -1,0 +1,59 @@
+# Feature metadata from the downloaded UCI workbook.
+# Units, reference ranges, and product input limits are intentionally unset
+# until the dataset documentation and a reliable clinical source are checked.
+features:
+  - {name: Age, type: continuous, group: Demographic, unit: null, input_range: null, reference_range: null}
+  - {name: Weight, type: continuous, group: Demographic, unit: null, input_range: null, reference_range: null}
+  - {name: Length, type: continuous, group: Demographic, unit: null, input_range: null, reference_range: null}
+  - {name: Sex, type: categorical, group: Demographic, unit: null, input_range: null, reference_range: null, categories: [Female, Male]}
+  - {name: BMI, type: continuous, group: Demographic, unit: null, input_range: null, reference_range: null}
+  - {name: DM, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: HTN, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: Current Smoker, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: EX-Smoker, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: FH, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: Obesity, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: CRF, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: CVA, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Airway disease, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Thyroid Disease, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: CHF, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: DLP, type: binary, group: Demographic, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: BP, type: continuous, group: Symptoms and examination, unit: null, input_range: null, reference_range: null}
+  - {name: PR, type: continuous, group: Symptoms and examination, unit: null, input_range: null, reference_range: null}
+  - {name: Edema, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: Weak Peripheral Pulse, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Lung rales, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Systolic Murmur, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Diastolic Murmur, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Typical Chest Pain, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: Dyspnea, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Function Class, type: ordinal, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: [0, 1, 2, 3]}
+  - {name: Atypical, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Nonanginal, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Exertional CP, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N'], constant_in_source: true}
+  - {name: LowTH Ang, type: binary, group: Symptoms and examination, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Q Wave, type: binary, group: ECG, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: St Elevation, type: binary, group: ECG, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: St Depression, type: binary, group: ECG, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: Tinversion, type: binary, group: ECG, unit: null, input_range: null, reference_range: null, categories: [0, 1]}
+  - {name: LVH, type: binary, group: ECG, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: Poor R Progression, type: binary, group: ECG, unit: null, input_range: null, reference_range: null, categories: ['N', 'Y']}
+  - {name: BBB, type: categorical, group: ECG, unit: null, input_range: null, reference_range: null, categories: ['N', LBBB, RBBB]}
+  - {name: FBS, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: CR, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: TG, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: LDL, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: HDL, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: BUN, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: ESR, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: HB, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: K, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: Na, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: WBC, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: Lymph, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: Neut, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: PLT, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: EF-TTE, type: continuous, group: Laboratory and echo, unit: null, input_range: null, reference_range: null}
+  - {name: Region RWMA, type: ordinal, group: Laboratory and echo, unit: null, input_range: null, reference_range: null, categories: [0, 1, 2, 3, 4]}
+  - {name: VHD, type: ordinal, group: Laboratory and echo, unit: null, input_range: null, reference_range: null, categories: ['N', Mild, Moderate, Severe]}

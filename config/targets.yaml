@@ -1,0 +1,33 @@
+# Target mapping for the UCI workbook currently in data/raw/.
+# CAD maps to Cath because the workbook has no CAD-named column and Cath is its
+# explicit CAD/Normal outcome. Compare it with the vessel-derived rule as a
+# sensitivity check; do not silently rewrite source labels.
+targets:
+  CAD:
+    source_column: Cath
+    positive_values: [CAD]
+    negative_values: [Normal]
+  LAD:
+    source_column: LAD
+    positive_values: [Stenotic]
+    negative_values: [Normal]
+  LCX:
+    source_column: LCX
+    positive_values: [Stenotic]
+    negative_values: [Normal]
+  RCA:
+    source_column: RCA
+    positive_values: [Stenotic]
+    negative_values: [Normal]
+
+# These are outcomes, never predictors for any target model.
+excluded_input_columns: [CAD, LAD, LCX, RCA, Cath]
+
+# The dataset description defines CAD as at least one stenotic vessel.
+# Keep Cath as the observed CAD label and report disagreements; do not silently
+# replace a source label with a derived value.
+cross_checks:
+  - name: cath_vs_any_stenotic_vessel
+    columns: [Cath, LAD, LCX, RCA]
+    expected_rule: Cath is CAD when any of LAD, LCX, or RCA is Stenotic
+    on_mismatch: report_and_review

@@ -1,0 +1,209 @@
+{
+  "source": {
+    "file": "data/raw/z_alizadeh_sani_uci_411.xlsx",
+    "sha256": "739343245c2ba578b541370217531750d8e936022f928b83e0d91756caa3ff0b",
+    "selected_sheet": "Sheet 1 - Table 1"
+  },
+  "workbook_sheets": [
+    {
+      "sheet": "Sheet 1 - Table 1",
+      "rows": 303,
+      "columns": 59
+    },
+    {
+      "sheet": "Sheet1",
+      "rows": 0,
+      "columns": 100
+    }
+  ],
+  "rows": 303,
+  "columns": 59,
+  "predictor_count_before_constant_review": 55,
+  "missing_values_by_column": {
+    "Age": 0,
+    "Weight": 0,
+    "Length": 0,
+    "Sex": 0,
+    "BMI": 0,
+    "DM": 0,
+    "HTN": 0,
+    "Current Smoker": 0,
+    "EX-Smoker": 0,
+    "FH": 0,
+    "Obesity": 0,
+    "CRF": 0,
+    "CVA": 0,
+    "Airway disease": 0,
+    "Thyroid Disease": 0,
+    "CHF": 0,
+    "DLP": 0,
+    "BP": 0,
+    "PR": 0,
+    "Edema": 0,
+    "Weak Peripheral Pulse": 0,
+    "Lung rales": 0,
+    "Systolic Murmur": 0,
+    "Diastolic Murmur": 0,
+    "Typical Chest Pain": 0,
+    "Dyspnea": 0,
+    "Function Class": 0,
+    "Atypical": 0,
+    "Nonanginal": 0,
+    "Exertional CP": 0,
+    "LowTH Ang": 0,
+    "Q Wave": 0,
+    "St Elevation": 0,
+    "St Depression": 0,
+    "Tinversion": 0,
+    "LVH": 0,
+    "Poor R Progression": 0,
+    "BBB": 0,
+    "FBS": 0,
+    "CR": 0,
+    "TG": 0,
+    "LDL": 0,
+    "HDL": 0,
+    "BUN": 0,
+    "ESR": 0,
+    "HB": 0,
+    "K": 0,
+    "Na": 0,
+    "WBC": 0,
+    "Lymph": 0,
+    "Neut": 0,
+    "PLT": 0,
+    "EF-TTE": 0,
+    "Region RWMA": 0,
+    "VHD": 0,
+    "LAD": 0,
+    "LCX": 0,
+    "RCA": 0,
+    "Cath": 0
+  },
+  "duplicate_rows": 0,
+  "outcome_counts": {
+    "Cath": {
+      "CAD": 216,
+      "Normal": 87
+    },
+    "LAD": {
+      "Stenotic": 177,
+      "Normal": 126
+    },
+    "LCX": {
+      "Normal": 184,
+      "Stenotic": 119
+    },
+    "RCA": {
+      "Normal": 189,
+      "Stenotic": 114
+    }
+  },
+  "cath_vessel_consistency": {
+    "rule": "Cath is CAD when any of LAD, LCX, or RCA is Stenotic",
+    "mismatch_count": 1,
+    "zero_based_row_indices": [
+      93
+    ],
+    "excel_row_numbers": [
+      95
+    ]
+  },
+  "constant_predictor_columns": [
+    "Exertional CP"
+  ],
+  "categorical_values": {
+    "Sex": [
+      "Fmale",
+      "Male"
+    ],
+    "Obesity": [
+      "N",
+      "Y"
+    ],
+    "CRF": [
+      "N",
+      "Y"
+    ],
+    "CVA": [
+      "N",
+      "Y"
+    ],
+    "Airway disease": [
+      "N",
+      "Y"
+    ],
+    "Thyroid Disease": [
+      "N",
+      "Y"
+    ],
+    "CHF": [
+      "N",
+      "Y"
+    ],
+    "DLP": [
+      "N",
+      "Y"
+    ],
+    "Weak Peripheral Pulse": [
+      "N",
+      "Y"
+    ],
+    "Lung rales": [
+      "N",
+      "Y"
+    ],
+    "Systolic Murmur": [
+      "N",
+      "Y"
+    ],
+    "Diastolic Murmur": [
+      "N",
+      "Y"
+    ],
+    "Dyspnea": [
+      "N",
+      "Y"
+    ],
+    "Atypical": [
+      "N",
+      "Y"
+    ],
+    "Nonanginal": [
+      "N",
+      "Y"
+    ],
+    "Exertional CP": [
+      "N"
+    ],
+    "LowTH Ang": [
+      "N",
+      "Y"
+    ],
+    "LVH": [
+      "N",
+      "Y"
+    ],
+    "Poor R Progression": [
+      "N",
+      "Y"
+    ],
+    "BBB": [
+      "LBBB",
+      "N",
+      "RBBB"
+    ],
+    "VHD": [
+      "Moderate",
+      "N",
+      "Severe",
+      "mild"
+    ]
+  },
+  "observations": [
+    "No CAD column is present in the non-empty workbook sheet; Cath is the explicit CAD/Normal outcome.",
+    "Sex contains the source spelling Fmale; data_prep maps it to Female without changing the raw workbook.",
+    "Exertional CP is constant (N) in all 303 records and cannot provide learned signal in this file.",
+    "Units and clinical reference ranges still require source verification; observed sample minima/maxima are not input limits."
+  ]
+}
