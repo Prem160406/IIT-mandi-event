@@ -1,5 +1,5 @@
 {
-  "created_at_utc": "2026-10-08T07:44:45.906484+00:00",
+  "created_at_utc": "2026-10-08T07:48:43.062057+00:00",
   "purpose": "Internal baseline only; not for diagnosis or treatment decisions.",
   "protocol": {
     "split": "stratified 80%/20% train/holdout",
@@ -603,8 +603,71 @@
           }
         }
       },
+      "sigmoid_calibrated_holdout_metrics": {
+        "threshold": 0.5,
+        "predicted_positive_rate": 0.7213114754098361,
+        "accuracy": 0.819672131147541,
+        "precision": 0.8636363636363636,
+        "recall_sensitivity": 0.8837209302325582,
+        "specificity": 0.6666666666666666,
+        "f1": 0.8735632183908046,
+        "roc_auc": 0.8811369509043928,
+        "brier_score": 0.12393175956507187,
+        "confusion_matrix_labels_0_1": [
+          [
+            12,
+            6
+          ],
+          [
+            5,
+            38
+          ]
+        ],
+        "stratified_bootstrap_95_ci": {
+          "accuracy": {
+            "lower_95": 0.7213114754098361,
+            "upper_95": 0.9016393442622951
+          },
+          "precision": {
+            "lower_95": 0.7872340425531915,
+            "upper_95": 0.9487179487179487
+          },
+          "recall_sensitivity": {
+            "lower_95": 0.7906976744186046,
+            "upper_95": 0.9767441860465116
+          },
+          "specificity": {
+            "lower_95": 0.4444444444444444,
+            "upper_95": 0.8888888888888888
+          },
+          "f1": {
+            "lower_95": 0.8,
+            "upper_95": 0.9333333333333333
+          },
+          "roc_auc": {
+            "lower_95": 0.7842377260981912,
+            "upper_95": 0.9573643410852712
+          },
+          "brier_score": {
+            "lower_95": 0.08319208377325223,
+            "upper_95": 0.16881289550255615
+          }
+        }
+      },
+      "calibration_method": {
+        "method": "sigmoid (Platt) calibration",
+        "fit": "CalibratedClassifierCV with 5 stratified folds on training partition only",
+        "holdout_used_for_fit_or_selection": false,
+        "paired_brier_difference_calibrated_minus_raw": {
+          "point_estimate_calibrated_minus_raw": -0.018804718181559474,
+          "lower_95": -0.052443570738610945,
+          "upper_95": 0.01296173985199375
+        },
+        "calibrated_model_file": "cad_logistic_sigmoid_calibrated.joblib",
+        "calibrated_model_sha256": "4075d3496df66eff4393ba5139e4bfd16cc3b24f2a6b966745381cca8d00e2e2"
+      },
       "holdout_uncertainty_method": "2000 stratified percentile bootstrap replicates, resampling separately within each holdout class; conditional on holdout class counts",
-      "calibration": "Not calibrated; Brier score is reported as a probability-quality baseline.",
+      "calibration": "Raw and sigmoid-calibrated probabilities are both reported; calibration is experimental and not selected based on holdout results.",
       "model_file": "cad_logistic.joblib",
       "model_sha256": "76bc023e8ba34b42aee539f9a657d19e440b7bfbd8a92f5a52e63e9c441bf29d",
       "versions": {
@@ -1220,8 +1283,71 @@
           }
         }
       },
+      "sigmoid_calibrated_holdout_metrics": {
+        "threshold": 0.5,
+        "predicted_positive_rate": 0.5901639344262295,
+        "accuracy": 0.7049180327868853,
+        "precision": 0.75,
+        "recall_sensitivity": 0.75,
+        "specificity": 0.64,
+        "f1": 0.75,
+        "roc_auc": 0.8022222222222222,
+        "brier_score": 0.18096006377291637,
+        "confusion_matrix_labels_0_1": [
+          [
+            16,
+            9
+          ],
+          [
+            9,
+            27
+          ]
+        ],
+        "stratified_bootstrap_95_ci": {
+          "accuracy": {
+            "lower_95": 0.5901639344262295,
+            "upper_95": 0.8036885245901617
+          },
+          "precision": {
+            "lower_95": 0.65,
+            "upper_95": 0.8571428571428571
+          },
+          "recall_sensitivity": {
+            "lower_95": 0.5833333333333334,
+            "upper_95": 0.8888888888888888
+          },
+          "specificity": {
+            "lower_95": 0.44,
+            "upper_95": 0.8
+          },
+          "f1": {
+            "lower_95": 0.6376811594202898,
+            "upper_95": 0.8450704225352113
+          },
+          "roc_auc": {
+            "lower_95": 0.6844444444444444,
+            "upper_95": 0.8988888888888888
+          },
+          "brier_score": {
+            "lower_95": 0.14323196163773286,
+            "upper_95": 0.2209708169046602
+          }
+        }
+      },
+      "calibration_method": {
+        "method": "sigmoid (Platt) calibration",
+        "fit": "CalibratedClassifierCV with 5 stratified folds on training partition only",
+        "holdout_used_for_fit_or_selection": false,
+        "paired_brier_difference_calibrated_minus_raw": {
+          "point_estimate_calibrated_minus_raw": -0.022106262023147055,
+          "lower_95": -0.06093795773597205,
+          "upper_95": 0.012739240026993068
+        },
+        "calibrated_model_file": "lad_logistic_sigmoid_calibrated.joblib",
+        "calibrated_model_sha256": "aac02305f22be9e40114c0c6eefda87e75d724747407c081f293c8f5a670f6fd"
+      },
       "holdout_uncertainty_method": "2000 stratified percentile bootstrap replicates, resampling separately within each holdout class; conditional on holdout class counts",
-      "calibration": "Not calibrated; Brier score is reported as a probability-quality baseline.",
+      "calibration": "Raw and sigmoid-calibrated probabilities are both reported; calibration is experimental and not selected based on holdout results.",
       "model_file": "lad_logistic.joblib",
       "model_sha256": "fbf1687ce9fd347e4ff1d260cb4e0a641ebc02d75e28375582a0647a00c1c7e7",
       "versions": {
@@ -1837,8 +1963,71 @@
           }
         }
       },
+      "sigmoid_calibrated_holdout_metrics": {
+        "threshold": 0.5,
+        "predicted_positive_rate": 0.18032786885245902,
+        "accuracy": 0.6557377049180327,
+        "precision": 0.6363636363636364,
+        "recall_sensitivity": 0.2916666666666667,
+        "specificity": 0.8918918918918919,
+        "f1": 0.4,
+        "roc_auc": 0.6306306306306306,
+        "brier_score": 0.22212329594477428,
+        "confusion_matrix_labels_0_1": [
+          [
+            33,
+            4
+          ],
+          [
+            17,
+            7
+          ]
+        ],
+        "stratified_bootstrap_95_ci": {
+          "accuracy": {
+            "lower_95": 0.5573770491803278,
+            "upper_95": 0.7540983606557377
+          },
+          "precision": {
+            "lower_95": 0.3333333333333333,
+            "upper_95": 0.9
+          },
+          "recall_sensitivity": {
+            "lower_95": 0.125,
+            "upper_95": 0.5
+          },
+          "specificity": {
+            "lower_95": 0.7837837837837838,
+            "upper_95": 0.972972972972973
+          },
+          "f1": {
+            "lower_95": 0.1875,
+            "upper_95": 0.594729729729729
+          },
+          "roc_auc": {
+            "lower_95": 0.47857545045045047,
+            "upper_95": 0.7691722972972972
+          },
+          "brier_score": {
+            "lower_95": 0.19309393348254691,
+            "upper_95": 0.2536310977779384
+          }
+        }
+      },
+      "calibration_method": {
+        "method": "sigmoid (Platt) calibration",
+        "fit": "CalibratedClassifierCV with 5 stratified folds on training partition only",
+        "holdout_used_for_fit_or_selection": false,
+        "paired_brier_difference_calibrated_minus_raw": {
+          "point_estimate_calibrated_minus_raw": -0.043800050516085015,
+          "lower_95": -0.08737023617982492,
+          "upper_95": -0.002439826081497606
+        },
+        "calibrated_model_file": "lcx_logistic_sigmoid_calibrated.joblib",
+        "calibrated_model_sha256": "e0a18417fb1a188c96370a928a79fe4dac78c88f917da25fe29ac73287b15e25"
+      },
       "holdout_uncertainty_method": "2000 stratified percentile bootstrap replicates, resampling separately within each holdout class; conditional on holdout class counts",
-      "calibration": "Not calibrated; Brier score is reported as a probability-quality baseline.",
+      "calibration": "Raw and sigmoid-calibrated probabilities are both reported; calibration is experimental and not selected based on holdout results.",
       "model_file": "lcx_logistic.joblib",
       "model_sha256": "2bb256fbb65d00b7aa92098e882362fbd198c67f49c67057f0e25984e2ce9c5e",
       "versions": {
@@ -2454,8 +2643,71 @@
           }
         }
       },
+      "sigmoid_calibrated_holdout_metrics": {
+        "threshold": 0.5,
+        "predicted_positive_rate": 0.06557377049180328,
+        "accuracy": 0.5901639344262295,
+        "precision": 0.25,
+        "recall_sensitivity": 0.043478260869565216,
+        "specificity": 0.9210526315789473,
+        "f1": 0.07407407407407407,
+        "roc_auc": 0.6407322654462242,
+        "brier_score": 0.22180969329426245,
+        "confusion_matrix_labels_0_1": [
+          [
+            35,
+            3
+          ],
+          [
+            22,
+            1
+          ]
+        ],
+        "stratified_bootstrap_95_ci": {
+          "accuracy": {
+            "lower_95": 0.5245901639344263,
+            "upper_95": 0.6557377049180327
+          },
+          "precision": {
+            "lower_95": 0.0,
+            "upper_95": 1.0
+          },
+          "recall_sensitivity": {
+            "lower_95": 0.0,
+            "upper_95": 0.13043478260869565
+          },
+          "specificity": {
+            "lower_95": 0.8157894736842105,
+            "upper_95": 1.0
+          },
+          "f1": {
+            "lower_95": 0.0,
+            "upper_95": 0.2222222222222222
+          },
+          "roc_auc": {
+            "lower_95": 0.5011155606407324,
+            "upper_95": 0.7814645308924485
+          },
+          "brier_score": {
+            "lower_95": 0.19748166048698368,
+            "upper_95": 0.24569750607043606
+          }
+        }
+      },
+      "calibration_method": {
+        "method": "sigmoid (Platt) calibration",
+        "fit": "CalibratedClassifierCV with 5 stratified folds on training partition only",
+        "holdout_used_for_fit_or_selection": false,
+        "paired_brier_difference_calibrated_minus_raw": {
+          "point_estimate_calibrated_minus_raw": -0.02355453170558139,
+          "lower_95": -0.06564990501761114,
+          "upper_95": 0.013159577972267382
+        },
+        "calibrated_model_file": "rca_logistic_sigmoid_calibrated.joblib",
+        "calibrated_model_sha256": "39c9a7a899148a0b902d63c1e3a24b0a86887135780c782d749c1df81f374afa"
+      },
       "holdout_uncertainty_method": "2000 stratified percentile bootstrap replicates, resampling separately within each holdout class; conditional on holdout class counts",
-      "calibration": "Not calibrated; Brier score is reported as a probability-quality baseline.",
+      "calibration": "Raw and sigmoid-calibrated probabilities are both reported; calibration is experimental and not selected based on holdout results.",
       "model_file": "rca_logistic.joblib",
       "model_sha256": "1820fe5231c1496b2c0ba34ea09b1fc27fa1b106ceb683f9749b5bd29e4ee2b9",
       "versions": {

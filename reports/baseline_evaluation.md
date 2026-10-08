@@ -11,7 +11,7 @@
 - Four separate binary classifiers: CAD (`Cath`), LAD, LCX and RCA. Every target/outcome column is removed from predictors for every model.
 - Class-weighted, L2-regularized logistic regression with median imputation and scaling for numeric fields; most-frequent imputation and one-hot encoding for categorical fields. All preprocessing is fitted within the model pipeline and within each CV fold.
 - Fixed random seed `2026`. A stratified 80/20 holdout is reserved before model fitting. Repeated stratified five-fold CV (three repeats) is run only on the training partition. The holdout is not used for model selection.
-- The demonstration threshold is fixed at `0.5`, not tuned to a clinical use. Probabilities are not calibrated. Brier scores are included as an uncalibrated baseline measure.
+- The raw logistic model's demonstration threshold is fixed at `0.5`, not tuned to a clinical use. Its probabilities are uncalibrated; Brier scores are included as a baseline measure.
 - Holdout intervals use 2,000 stratified percentile bootstrap replicates, resampling within each observed class and keeping the class counts fixed. They reflect sampling variation conditional on this split; they do not include uncertainty from refitting the model or changing populations.
 - Environment: Python 3.12.14, scikit-learn 1.9.1; exact package versions are pinned in `requirements.txt`. Raw data and model hashes, feature names, split row indices, versions and metrics are recorded in the JSON.
 
@@ -48,7 +48,20 @@ The fixed candidate set compares L2 logistic regression with a class-balanced ra
 | LCX | 0.687 ± 0.047 | 0.728 ± 0.070 | +0.041 | 9 / 15 | 0.574 | 0.521 | 0.607 | 0.470 |
 | RCA | 0.712 ± 0.064 | 0.714 ± 0.052 | +0.003 | 8 / 15 | 0.570 | 0.457 | 0.602 | 0.390 |
 
-The forest has a modest mean AUC increase for LCX, but it does not improve that target's mean F1 or recall at the fixed threshold; the direction is not consistent across folds. For CAD and RCA, mean AUC is nearly unchanged. These results do not establish a reliable winner. The logistic models remain the saved baseline, and the untouched holdout has only been used for those baseline estimates; no forest holdout score is reported.
+The forest has a modest mean AUC increase for LCX, but it does not improve that target's mean F1 or recall at the fixed threshold; the direction is not consistent across folds. For CAD and RCA, mean AUC is nearly unchanged. These results do not establish a reliable winner. The logistic models remain the saved baseline. The holdout is used only for raw and calibrated logistic evaluation, never for model selection; no forest holdout score is reported.
+
+## Sigmoid calibration experiment
+
+A sigmoid (Platt) calibrator was predeclared and fitted with five-fold stratified CV on the training partition. It was then applied once to the reserved holdout. No calibration method or operating threshold was selected using holdout results. Brier difference is paired (`calibrated − raw`); its interval resamples the same holdout records within each class.
+
+| Target | Raw Brier | Sigmoid Brier | Paired Brier difference (95% CI) | Raw AUC | Sigmoid AUC | Sigmoid sensitivity / specificity at 0.5 |
+|---|---:|---:|---:|---:|---:|---:|
+| CAD | 0.143 | 0.124 | −0.019 (−0.052–0.013) | 0.889 | 0.881 | 0.884 / 0.667 |
+| LAD | 0.203 | 0.181 | −0.022 (−0.061–0.013) | 0.793 | 0.802 | 0.750 / 0.640 |
+| LCX | 0.266 | 0.222 | −0.044 (−0.087–−0.002) | 0.633 | 0.631 | 0.292 / 0.892 |
+| RCA | 0.245 | 0.222 | −0.024 (−0.066–0.013) | 0.641 | 0.641 | 0.043 / 0.921 |
+
+The calibrated probabilities have similar AUCs and lower Brier point estimates on this holdout, but most paired intervals include zero. At a fixed `0.5` cutoff, calibrated LCX/RCA sensitivities are especially low. Calibration changes probability scale; it does not preserve the raw model's operating point. Therefore the sigmoid models are saved as experimental artifacts and are not selected for the application. If we later use them, threshold trade-offs must be recomputed from training-only cross-fitted calibrated probabilities for the chosen use case.
 
 ## Interpretation and next work
 

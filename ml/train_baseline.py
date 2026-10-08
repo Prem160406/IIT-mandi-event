@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 import sklearn
 from sklearn.compose import ColumnTransformer
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -172,6 +173,37 @@ def stratified_bootstrap_intervals(
     }
 
 
+def stratified_bootstrap_brier_difference(
+    y_true: pd.Series | np.ndarray,
+    raw_probabilities: np.ndarray,
+    calibrated_probabilities: np.ndarray,
+    *,
+    seed: int,
+) -> dict[str, float]:
+    """CI for paired Brier-score difference (calibrated minus raw)."""
+    y = np.asarray(y_true, dtype="int8")
+    raw = np.asarray(raw_probabilities, dtype="float64")
+    calibrated = np.asarray(calibrated_probabilities, dtype="float64")
+    class_indices = [np.flatnonzero(y == label) for label in (0, 1)]
+    if any(indices.size == 0 for indices in class_indices):
+        raise ValueError("Stratified bootstrap requires both classes in the holdout")
+    rng = np.random.default_rng(seed)
+    differences = np.empty(BOOTSTRAP_REPLICATES, dtype="float64")
+    for replicate in range(BOOTSTRAP_REPLICATES):
+        sampled = np.concatenate(
+            [rng.choice(indices, size=indices.size, replace=True) for indices in class_indices]
+        )
+        differences[replicate] = brier_score_loss(y[sampled], calibrated[sampled]) - brier_score_loss(
+            y[sampled], raw[sampled]
+        )
+    point_difference = brier_score_loss(y, calibrated) - brier_score_loss(y, raw)
+    return {
+        "point_estimate_calibrated_minus_raw": float(point_difference),
+        "lower_95": float(np.quantile(differences, 0.025)),
+        "upper_95": float(np.quantile(differences, 0.975)),
+    }
+
+
 def evaluate_target(
     frame: pd.DataFrame,
     target: str,
@@ -231,6 +263,24 @@ def evaluate_target(
     model_path = output_dir / f"{target.lower()}_logistic.joblib"
     joblib.dump(estimator, model_path)
 
+    calibration_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
+    calibrated_estimator = CalibratedClassifierCV(
+        estimator=make_pipeline(X_train, classifier_name="logistic"),
+        method="sigmoid",
+        cv=calibration_cv,
+    )
+    calibrated_estimator.fit(X_train, y_train)
+    calibrated_probabilities = calibrated_estimator.predict_proba(X_test)[:, 1]
+    calibrated_holdout = metrics(y_test, calibrated_probabilities)
+    calibrated_holdout["stratified_bootstrap_95_ci"] = stratified_bootstrap_intervals(
+        y_test, calibrated_probabilities, seed=target_seed + 100
+    )
+    brier_difference = stratified_bootstrap_brier_difference(
+        y_test, test_probabilities, calibrated_probabilities, seed=target_seed + 200
+    )
+    calibrated_model_path = output_dir / f"{target.lower()}_logistic_sigmoid_calibrated.joblib"
+    joblib.dump(calibrated_estimator, calibrated_model_path)
+
     spec = target_config["targets"][target]
     return {
         "target": target,
@@ -273,11 +323,20 @@ def evaluate_target(
             "table": threshold_table,
         },
         "holdout_metrics": holdout,
+        "sigmoid_calibrated_holdout_metrics": calibrated_holdout,
+        "calibration_method": {
+            "method": "sigmoid (Platt) calibration",
+            "fit": "CalibratedClassifierCV with 5 stratified folds on training partition only",
+            "holdout_used_for_fit_or_selection": False,
+            "paired_brier_difference_calibrated_minus_raw": brier_difference,
+            "calibrated_model_file": calibrated_model_path.name,
+            "calibrated_model_sha256": sha256(calibrated_model_path),
+        },
         "holdout_uncertainty_method": (
             f"{BOOTSTRAP_REPLICATES} stratified percentile bootstrap replicates, resampling separately "
             "within each holdout class; conditional on holdout class counts"
         ),
-        "calibration": "Not calibrated; Brier score is reported as a probability-quality baseline.",
+        "calibration": "Raw and sigmoid-calibrated probabilities are both reported; calibration is experimental and not selected based on holdout results.",
         "model_file": model_path.name,
         "model_sha256": sha256(model_path),
         "versions": {

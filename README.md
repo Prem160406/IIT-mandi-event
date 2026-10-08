@@ -927,7 +927,7 @@ python -m ml.train_baseline
 uvicorn backend.app.main:app --reload --port 8000
 ```
 
-The ML audit and baseline commands are usable before the API exists. `ml.train_baseline` writes model files and `evaluation.json` under `artifacts/baseline/`; it does not tune against the holdout, and its probabilities are not calibrated yet. These first baseline artifacts are committed for teammate handoff, but are not final model selections. Use Python 3.12 with the exact package versions in `requirements.txt` to reproduce this run; model files should be loaded only from this trusted repository and with the recorded scikit-learn version.
+The ML audit and baseline commands are usable before the API exists. `ml.train_baseline` writes model files and `evaluation.json` under `artifacts/baseline/`; it does not tune against the holdout. The raw logistic models are uncalibrated; sigmoid-calibrated alternatives are saved as experiments and have not been selected for the app. These artifacts are committed for teammate handoff, but are not final model selections. Use Python 3.12 with the exact package versions in `requirements.txt` to reproduce this run; model files should be loaded only from this trusted repository and with the recorded scikit-learn version.
 
 Frontend:
 
