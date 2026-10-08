@@ -63,6 +63,19 @@ A sigmoid (Platt) calibrator was predeclared and fitted with five-fold stratifie
 
 The calibrated probabilities have similar AUCs and lower Brier point estimates on this holdout, but most paired intervals include zero. At a fixed `0.5` cutoff, calibrated LCX/RCA sensitivities are especially low. Calibration changes probability scale; it does not preserve the raw model's operating point. Therefore the sigmoid models are saved as experimental artifacts and are not selected for the application. If we later use them, threshold trade-offs must be recomputed from training-only cross-fitted calibrated probabilities for the chosen use case.
 
+### Calibrated threshold trade-offs
+
+Threshold curves below use nested cross-fitted sigmoid probabilities on training data: each outer validation fold was excluded from both base-model fitting and calibration fitting. These are descriptive trade-offs only; no threshold is selected. `P+` is the fraction of records classified positive at that cutoff.
+
+| Target | 0.30 Sensitivity / Specificity (P+) | 0.40 Sensitivity / Specificity (P+) | 0.50 Sensitivity / Specificity (P+) |
+|---|---:|---:|---:|
+| CAD | 0.977 / 0.377 (0.876) | 0.954 / 0.580 (0.802) | 0.925 / 0.696 (0.748) |
+| LAD | 0.986 / 0.307 (0.864) | 0.936 / 0.535 (0.740) | 0.787 / 0.693 (0.587) |
+| LCX | 0.895 / 0.374 (0.731) | 0.621 / 0.626 (0.471) | 0.305 / 0.796 (0.244) |
+| RCA | 0.780 / 0.424 (0.653) | 0.593 / 0.702 (0.409) | 0.352 / 0.848 (0.227) |
+
+The calibrated LCX/RCA curves show steep sensitivity-specificity trade-offs. A 0.5 probability cutoff is not automatically a useful or safe classification threshold. The intended use must define the cost of false negatives versus false positives before any operating point can be considered; this dataset cannot establish a clinical threshold.
+
 ## Split sensitivity
 
 To check repeatability against the particular 80/20 partition, the fixed raw logistic model was retrained and scored over 25 repeated stratified 80/20 splits. No hyperparameters were changed. The values below are the 5th and 95th percentiles across those splits, not confidence intervals: the splits overlap and are dependent. Exact row indices and per-split metrics are in the JSON for reproducibility.
@@ -93,4 +106,4 @@ ECG removal slightly improves mean AUC for LAD/LCX/RCA, while removing demograph
 
 The CAD and LAD baseline results look stronger than LCX and RCA on this one split, but a 303-record dataset and a 61-record holdout make the estimates noisy. The train-only CV spread and holdout differences show why these scores are not proof of generalization. Do not use them as clinical performance claims. In particular, the LCX/RCA operating-point metrics show substantial false negatives at the fixed threshold; changing a threshold requires an explicitly chosen use case and training-only analysis.
 
-Next M1 actions: integrate the explanation helper with M2's API, derive training-only operating points for any calibrated model considered for the app, and record remaining failure modes. External validation is required before claims about performance in another population.
+Next M1 actions: integrate the explanation helper with M2's API, agree with the team on how continuous probabilities and uncertainty will be shown, and record remaining failure modes. External validation is required before claims about performance in another population.

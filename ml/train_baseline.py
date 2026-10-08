@@ -275,6 +275,24 @@ def split_sensitivity(
     }
 
 
+def cross_fitted_calibrated_probabilities(X: pd.DataFrame, y: pd.Series) -> np.ndarray:
+    """Nested cross-fitted sigmoid probabilities, with no row used to fit its prediction."""
+    outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED + 1)
+    probabilities = np.full(len(y), np.nan, dtype="float64")
+    for fold_number, (fit_indices, validation_indices) in enumerate(outer_cv.split(X, y)):
+        inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED + 10 + fold_number)
+        calibrated = CalibratedClassifierCV(
+            estimator=make_pipeline(X.iloc[fit_indices], classifier_name="logistic"),
+            method="sigmoid",
+            cv=inner_cv,
+        )
+        calibrated.fit(X.iloc[fit_indices], y.iloc[fit_indices])
+        probabilities[validation_indices] = calibrated.predict_proba(X.iloc[validation_indices])[:, 1]
+    if np.isnan(probabilities).any():
+        raise RuntimeError("Nested calibration did not produce an out-of-fold prediction for every row")
+    return probabilities
+
+
 def evaluate_target(
     frame: pd.DataFrame,
     target: str,
@@ -357,6 +375,11 @@ def evaluate_target(
         metrics(y_train, oof_probabilities, threshold=threshold)
         for threshold in (0.25, 0.35, 0.50, 0.65, 0.75)
     ]
+    calibrated_oof_probabilities = cross_fitted_calibrated_probabilities(X_train, y_train)
+    calibrated_threshold_table = [
+        metrics(y_train, calibrated_oof_probabilities, threshold=threshold)
+        for threshold in (0.05, 0.10, 0.20, 0.30, 0.40, 0.50)
+    ]
     split_sensitivity_results = split_sensitivity(X, y)
 
     estimator.fit(X_train, y_train)
@@ -434,6 +457,11 @@ def evaluate_target(
             "source": "single 5-fold stratified out-of-fold predictions on training partition only",
             "warning": "Descriptive trade-offs only; thresholds have not been selected for a clinical use.",
             "table": threshold_table,
+        },
+        "training_only_calibrated_threshold_tradeoffs": {
+            "source": "nested cross-fitted sigmoid probabilities on training partition: 5 outer folds, each with 5-fold calibration on outer-training rows",
+            "warning": "Descriptive trade-offs only; no operating threshold is selected for clinical use.",
+            "table": calibrated_threshold_table,
         },
         "split_sensitivity": split_sensitivity_results,
         "holdout_metrics": holdout,
