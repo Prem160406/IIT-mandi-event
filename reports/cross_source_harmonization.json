@@ -1,0 +1,1333 @@
+{
+  "created_at_utc": "2026-10-09T08:44:09.449551+00:00",
+  "n_organizer": 303,
+  "n_uci45": 920,
+  "organizer_label_counts_cath": {
+    "CAD": 216,
+    "Normal": 87
+  },
+  "organizer_cath_vs_any_stenotic_vessel": {
+    "agreement_count": 302,
+    "mismatch_count": 1,
+    "mismatch_rows_zero_based": [
+      93
+    ]
+  },
+  "uci45_cohorts": {
+    "cleveland": {
+      "n": 303,
+      "positive": 139,
+      "missing_fbs": 0
+    },
+    "hungary": {
+      "n": 294,
+      "positive": 106,
+      "missing_fbs": 8
+    },
+    "long_beach_va": {
+      "n": 200,
+      "positive": 149,
+      "missing_fbs": 7
+    },
+    "switzerland": {
+      "n": 123,
+      "positive": 115,
+      "missing_fbs": 75
+    }
+  },
+  "mapping_audit": {
+    "age": "Direct: years in both datasets.",
+    "sex": "Direct: normalized to male/female; UCI code 1=male, 0=female.",
+    "fbs120": "Comparable threshold: organizer raw FBS mg/dL converted to >120; UCI fbs is already this indicator. UCI missing values remain missing and are imputed inside training folds.",
+    "chest_pain": "Exploratory semantic mapping: organizer Typical/Atypical/Nonanginal flags map to UCI cp 1/2/3; the 30 organizer rows with no flags are either retained separately or assumed asymptomatic in an explicit sensitivity variant. UCI cp=4 is asymptomatic. Neither choice is proven from the field encoding alone.",
+    "bp": "Exploratory mapping: organizer BP is documented as blood pressure in mmHg; UCI trestbps is resting/admission BP in mmHg. Primary source metadata does not explicitly label BP as systolic or specify measurement context, so BP is a sensitivity feature, not an exact-match core feature.",
+    "target": "Organizer Cath CAD/Normal versus UCI num=0 versus num=1..4. UCI documentation describes <50% for 0 and >50% for positive, while organizer CAD is >=50%; the exact-50 boundary is not harmonized. Organizer Cath disagrees with the any-vessel rule in one row, reported separately.",
+    "records": "No row-level patient identifiers are available for cross-source deduplication; datasets are treated as distinct source domains, not merged into one row table."
+  },
+  "protocol": "Train only on one source and evaluate on the entirely external source or one untouched UCI cohort. Imputation, scaling, and category encoding are fitted within each training source. Fixed threshold 0.5 is descriptive only.",
+  "models": "One regularized logistic regression per feature variant for interpretability and low sample-size control.",
+  "results": {
+    "core_age_sex_fbs": {
+      "features": [
+        "age",
+        "sex",
+        "fbs120"
+      ],
+      "chest_pain_mapping": "No organizer category flags retained as a separate no_category_flag value.",
+      "organizer_to_each_uci_cohort": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.658097911914371,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.5970499210387787,
+            0.7177838217231093
+          ],
+          "average_precision": 0.5725545349437168,
+          "brier_score": 0.25786483268159277,
+          "brier_ci95_stratified_bootstrap": [
+            0.23578242449776,
+            0.2809877150297307
+          ],
+          "accuracy_at_0_5": 0.6171617161716172,
+          "precision_at_0_5": 0.5545023696682464,
+          "sensitivity_at_0_5": 0.841726618705036,
+          "specificity_at_0_5": 0.4268292682926829,
+          "tn": 70,
+          "fp": 94,
+          "fn": 22,
+          "tp": 117
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.6544560417503011,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.5893472751906864,
+            0.719315159574468
+          ],
+          "average_precision": 0.5281194229430126,
+          "brier_score": 0.23190885898171296,
+          "brier_ci95_stratified_bootstrap": [
+            0.21150052926860757,
+            0.2519846135938892
+          ],
+          "accuracy_at_0_5": 0.6292517006802721,
+          "precision_at_0_5": 0.4888888888888889,
+          "sensitivity_at_0_5": 0.6226415094339622,
+          "specificity_at_0_5": 0.6329787234042553,
+          "tn": 119,
+          "fp": 69,
+          "fn": 40,
+          "tp": 66
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.6122516120542177,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.523480063166206,
+            0.7013521515988946
+          ],
+          "average_precision": 0.8062112918039755,
+          "brier_score": 0.1873930210471634,
+          "brier_ci95_stratified_bootstrap": [
+            0.1682259570477521,
+            0.20617069862320503
+          ],
+          "accuracy_at_0_5": 0.76,
+          "precision_at_0_5": 0.7700534759358288,
+          "sensitivity_at_0_5": 0.9664429530201343,
+          "specificity_at_0_5": 0.1568627450980392,
+          "tn": 8,
+          "fp": 43,
+          "fn": 5,
+          "tp": 144
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.5434782608695652,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.3249728260869565,
+            0.7456793478260868
+          ],
+          "average_precision": 0.9394614513044991,
+          "brier_score": 0.17489960356706583,
+          "brier_ci95_stratified_bootstrap": [
+            0.1456100235209349,
+            0.20673153027654678
+          ],
+          "accuracy_at_0_5": 0.7560975609756098,
+          "precision_at_0_5": 0.9381443298969072,
+          "sensitivity_at_0_5": 0.7913043478260869,
+          "specificity_at_0_5": 0.25,
+          "tn": 2,
+          "fp": 6,
+          "fn": 24,
+          "tp": 91
+        }
+      },
+      "all_uci_to_organizer": {
+        "n": 303,
+        "positive": 216,
+        "negative": 87,
+        "roc_auc": 0.7059919114516815,
+        "roc_auc_ci95_stratified_bootstrap": [
+          0.6433848180076628,
+          0.76871408045977
+        ],
+        "average_precision": 0.8475295467691756,
+        "brier_score": 0.2190267376511268,
+        "brier_ci95_stratified_bootstrap": [
+          0.19882704843072815,
+          0.2389483455072442
+        ],
+        "accuracy_at_0_5": 0.6501650165016502,
+        "precision_at_0_5": 0.8089887640449438,
+        "sensitivity_at_0_5": 0.6666666666666666,
+        "specificity_at_0_5": 0.6091954022988506,
+        "tn": 53,
+        "fp": 34,
+        "fn": 72,
+        "tp": 144,
+        "against_vessel_derived_sensitivity_label": {
+          "n": 303,
+          "positive": 217,
+          "negative": 86,
+          "roc_auc": 0.7127049619547744,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6506148858643231,
+            0.7748660379380559
+          ],
+          "average_precision": 0.8537443448229142,
+          "brier_score": 0.21735380477903937,
+          "brier_ci95_stratified_bootstrap": [
+            0.19656250921351145,
+            0.23725700234921787
+          ],
+          "accuracy_at_0_5": 0.6534653465346535,
+          "precision_at_0_5": 0.8146067415730337,
+          "sensitivity_at_0_5": 0.6682027649769585,
+          "specificity_at_0_5": 0.6162790697674418,
+          "tn": 53,
+          "fp": 33,
+          "fn": 72,
+          "tp": 145
+        }
+      },
+      "uci_leave_one_cohort_out": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.7000350938761186,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6404188234778031,
+            0.7565181391472188
+          ],
+          "average_precision": 0.6263307143342901,
+          "brier_score": 0.2219595552530166,
+          "brier_ci95_stratified_bootstrap": [
+            0.20301372974618664,
+            0.2421440067854416
+          ],
+          "accuracy_at_0_5": 0.6435643564356436,
+          "precision_at_0_5": 0.5950920245398773,
+          "sensitivity_at_0_5": 0.697841726618705,
+          "specificity_at_0_5": 0.5975609756097561,
+          "tn": 98,
+          "fp": 66,
+          "fn": 42,
+          "tp": 97
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.6717181854676837,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6103472501003613,
+            0.7340701525491771
+          ],
+          "average_precision": 0.4900308971161056,
+          "brier_score": 0.22474031820922682,
+          "brier_ci95_stratified_bootstrap": [
+            0.20548062578349088,
+            0.24357679685885206
+          ],
+          "accuracy_at_0_5": 0.6360544217687075,
+          "precision_at_0_5": 0.4965986394557823,
+          "sensitivity_at_0_5": 0.6886792452830188,
+          "specificity_at_0_5": 0.6063829787234043,
+          "tn": 114,
+          "fp": 74,
+          "fn": 33,
+          "tp": 73
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.6295565205948151,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.5391400184234768,
+            0.7167423345176996
+          ],
+          "average_precision": 0.8248041650757942,
+          "brier_score": 0.1880428004306134,
+          "brier_ci95_stratified_bootstrap": [
+            0.17243974471126536,
+            0.2037872148275164
+          ],
+          "accuracy_at_0_5": 0.755,
+          "precision_at_0_5": 0.7777777777777778,
+          "sensitivity_at_0_5": 0.9395973154362416,
+          "specificity_at_0_5": 0.21568627450980393,
+          "tn": 11,
+          "fp": 40,
+          "fn": 9,
+          "tp": 140
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.45271739130434785,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.24565217391304348,
+            0.6521739130434783
+          ],
+          "average_precision": 0.9169083607736437,
+          "brier_score": 0.18667536004414398,
+          "brier_ci95_stratified_bootstrap": [
+            0.16119929519961426,
+            0.21304837441598698
+          ],
+          "accuracy_at_0_5": 0.7317073170731707,
+          "precision_at_0_5": 0.9270833333333334,
+          "sensitivity_at_0_5": 0.7739130434782608,
+          "specificity_at_0_5": 0.125,
+          "tn": 1,
+          "fp": 7,
+          "fn": 26,
+          "tp": 89
+        }
+      }
+    },
+    "core_plus_bp": {
+      "features": [
+        "age",
+        "sex",
+        "fbs120",
+        "bp"
+      ],
+      "chest_pain_mapping": "No organizer category flags retained as a separate no_category_flag value.",
+      "organizer_to_each_uci_cohort": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.6690647482014389,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6091161826636252,
+            0.7284666169503422
+          ],
+          "average_precision": 0.5872919517990381,
+          "brier_score": 0.26272140964807733,
+          "brier_ci95_stratified_bootstrap": [
+            0.23814398834563075,
+            0.2870235717497805
+          ],
+          "accuracy_at_0_5": 0.6171617161716172,
+          "precision_at_0_5": 0.5529953917050692,
+          "sensitivity_at_0_5": 0.8633093525179856,
+          "specificity_at_0_5": 0.40853658536585363,
+          "tn": 67,
+          "fp": 97,
+          "fn": 19,
+          "tp": 120
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.6657968687274186,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.5980893717382577,
+            0.7304082195905259
+          ],
+          "average_precision": 0.5564292294530695,
+          "brier_score": 0.24465818016004337,
+          "brier_ci95_stratified_bootstrap": [
+            0.2206008047286744,
+            0.2680371072071724
+          ],
+          "accuracy_at_0_5": 0.5850340136054422,
+          "precision_at_0_5": 0.44871794871794873,
+          "sensitivity_at_0_5": 0.660377358490566,
+          "specificity_at_0_5": 0.5425531914893617,
+          "tn": 102,
+          "fp": 86,
+          "fn": 36,
+          "tp": 70
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.6229767074615081,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.535068759047243,
+            0.7098384655875772
+          ],
+          "average_precision": 0.8221727708376749,
+          "brier_score": 0.1913148979828005,
+          "brier_ci95_stratified_bootstrap": [
+            0.16973937828136057,
+            0.21314691640636543
+          ],
+          "accuracy_at_0_5": 0.755,
+          "precision_at_0_5": 0.7659574468085106,
+          "sensitivity_at_0_5": 0.9664429530201343,
+          "specificity_at_0_5": 0.13725490196078433,
+          "tn": 7,
+          "fp": 44,
+          "fn": 5,
+          "tp": 144
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.5608695652173914,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.32605978260869567,
+            0.785353260869565
+          ],
+          "average_precision": 0.9354572801075948,
+          "brier_score": 0.17632142738071252,
+          "brier_ci95_stratified_bootstrap": [
+            0.1432291016911043,
+            0.21245008129230292
+          ],
+          "accuracy_at_0_5": 0.7560975609756098,
+          "precision_at_0_5": 0.9473684210526315,
+          "sensitivity_at_0_5": 0.782608695652174,
+          "specificity_at_0_5": 0.375,
+          "tn": 3,
+          "fp": 5,
+          "fn": 25,
+          "tp": 90
+        }
+      },
+      "all_uci_to_organizer": {
+        "n": 303,
+        "positive": 216,
+        "negative": 87,
+        "roc_auc": 0.7156502767134951,
+        "roc_auc_ci95_stratified_bootstrap": [
+          0.6538127926777353,
+          0.7741632077479779
+        ],
+        "average_precision": 0.8577904260682091,
+        "brier_score": 0.21944195185737894,
+        "brier_ci95_stratified_bootstrap": [
+          0.1991055929003814,
+          0.2391511057453629
+        ],
+        "accuracy_at_0_5": 0.6237623762376238,
+        "precision_at_0_5": 0.8,
+        "sensitivity_at_0_5": 0.6296296296296297,
+        "specificity_at_0_5": 0.6091954022988506,
+        "tn": 53,
+        "fp": 34,
+        "fn": 80,
+        "tp": 136,
+        "against_vessel_derived_sensitivity_label": {
+          "n": 303,
+          "positive": 217,
+          "negative": 86,
+          "roc_auc": 0.7224038152395242,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.660342540992391,
+            0.7843806933876325
+          ],
+          "average_precision": 0.8640043756297402,
+          "brier_score": 0.2178138427608862,
+          "brier_ci95_stratified_bootstrap": [
+            0.19665512859438902,
+            0.23764655171534257
+          ],
+          "accuracy_at_0_5": 0.6270627062706271,
+          "precision_at_0_5": 0.8058823529411765,
+          "sensitivity_at_0_5": 0.631336405529954,
+          "specificity_at_0_5": 0.6162790697674418,
+          "tn": 53,
+          "fp": 33,
+          "fn": 80,
+          "tp": 137
+        }
+      },
+      "uci_leave_one_cohort_out": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.7014388489208633,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6418439638533076,
+            0.7569332339006843
+          ],
+          "average_precision": 0.6264094593662646,
+          "brier_score": 0.221426847029402,
+          "brier_ci95_stratified_bootstrap": [
+            0.20217927092628868,
+            0.24191134584930246
+          ],
+          "accuracy_at_0_5": 0.6468646864686468,
+          "precision_at_0_5": 0.5963855421686747,
+          "sensitivity_at_0_5": 0.7122302158273381,
+          "specificity_at_0_5": 0.5914634146341463,
+          "tn": 97,
+          "fp": 67,
+          "fn": 40,
+          "tp": 99
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.6829586511441188,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6208055248896026,
+            0.7435273233641108
+          ],
+          "average_precision": 0.5185633630216904,
+          "brier_score": 0.22738079190968388,
+          "brier_ci95_stratified_bootstrap": [
+            0.20709284106948442,
+            0.24769234105284507
+          ],
+          "accuracy_at_0_5": 0.6394557823129252,
+          "precision_at_0_5": 0.5,
+          "sensitivity_at_0_5": 0.7264150943396226,
+          "specificity_at_0_5": 0.5904255319148937,
+          "tn": 111,
+          "fp": 77,
+          "fn": 29,
+          "tp": 77
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.5929069614422949,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.4984109751283064,
+            0.6886432425319121
+          ],
+          "average_precision": 0.8037726209054203,
+          "brier_score": 0.1937225408122652,
+          "brier_ci95_stratified_bootstrap": [
+            0.17484083131590697,
+            0.2118438216432211
+          ],
+          "accuracy_at_0_5": 0.74,
+          "precision_at_0_5": 0.7679558011049724,
+          "sensitivity_at_0_5": 0.9328859060402684,
+          "specificity_at_0_5": 0.17647058823529413,
+          "tn": 9,
+          "fp": 42,
+          "fn": 10,
+          "tp": 139
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.47934782608695653,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.25432065217391303,
+            0.6891847826086954
+          ],
+          "average_precision": 0.9145774468336652,
+          "brier_score": 0.18713755210543495,
+          "brier_ci95_stratified_bootstrap": [
+            0.1608327439764958,
+            0.21553334597162285
+          ],
+          "accuracy_at_0_5": 0.7317073170731707,
+          "precision_at_0_5": 0.9270833333333334,
+          "sensitivity_at_0_5": 0.7739130434782608,
+          "specificity_at_0_5": 0.125,
+          "tn": 1,
+          "fp": 7,
+          "fn": 26,
+          "tp": 89
+        }
+      }
+    },
+    "core_plus_chest_pain": {
+      "features": [
+        "age",
+        "sex",
+        "fbs120",
+        "chest_pain"
+      ],
+      "chest_pain_mapping": "No organizer category flags retained as a separate no_category_flag value.",
+      "organizer_to_each_uci_cohort": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.7219248991051062,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6641938278645376,
+            0.7770074793823477
+          ],
+          "average_precision": 0.5982805124217033,
+          "brier_score": 0.21905631868771802,
+          "brier_ci95_stratified_bootstrap": [
+            0.19524709585944952,
+            0.24413077413752438
+          ],
+          "accuracy_at_0_5": 0.6864686468646864,
+          "precision_at_0_5": 0.6506849315068494,
+          "sensitivity_at_0_5": 0.6834532374100719,
+          "specificity_at_0_5": 0.6890243902439024,
+          "tn": 113,
+          "fp": 51,
+          "fn": 44,
+          "tp": 95
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.7556704134885588,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6995891459253313,
+            0.8125551987153753
+          ],
+          "average_precision": 0.6111191363436459,
+          "brier_score": 0.19277989374749008,
+          "brier_ci95_stratified_bootstrap": [
+            0.173330248351756,
+            0.21263579800204338
+          ],
+          "accuracy_at_0_5": 0.717687074829932,
+          "precision_at_0_5": 0.676923076923077,
+          "sensitivity_at_0_5": 0.41509433962264153,
+          "specificity_at_0_5": 0.8882978723404256,
+          "tn": 167,
+          "fp": 21,
+          "fn": 62,
+          "tp": 44
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.6464666403474142,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.5554480852743782,
+            0.7314186077115409
+          ],
+          "average_precision": 0.8178411431536212,
+          "brier_score": 0.20345603295102918,
+          "brier_ci95_stratified_bootstrap": [
+            0.17800106791757814,
+            0.22940065304160562
+          ],
+          "accuracy_at_0_5": 0.685,
+          "precision_at_0_5": 0.7792207792207793,
+          "sensitivity_at_0_5": 0.8053691275167785,
+          "specificity_at_0_5": 0.3333333333333333,
+          "tn": 17,
+          "fp": 34,
+          "fn": 29,
+          "tp": 120
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.6798913043478261,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.4717391304347826,
+            0.8673913043478261
+          ],
+          "average_precision": 0.9645840129423943,
+          "brier_score": 0.2448574293138941,
+          "brier_ci95_stratified_bootstrap": [
+            0.209475088869518,
+            0.28230351498657513
+          ],
+          "accuracy_at_0_5": 0.6341463414634146,
+          "precision_at_0_5": 0.9605263157894737,
+          "sensitivity_at_0_5": 0.6347826086956522,
+          "specificity_at_0_5": 0.625,
+          "tn": 5,
+          "fp": 3,
+          "fn": 42,
+          "tp": 73
+        }
+      },
+      "all_uci_to_organizer": {
+        "n": 303,
+        "positive": 216,
+        "negative": 87,
+        "roc_auc": 0.7954182630906769,
+        "roc_auc_ci95_stratified_bootstrap": [
+          0.7383075244785016,
+          0.8515345625798212
+        ],
+        "average_precision": 0.8805811828202248,
+        "brier_score": 0.30164149570764814,
+        "brier_ci95_stratified_bootstrap": [
+          0.2786924424641745,
+          0.32174615568143405
+        ],
+        "accuracy_at_0_5": 0.4884488448844885,
+        "precision_at_0_5": 0.9178082191780822,
+        "sensitivity_at_0_5": 0.3101851851851852,
+        "specificity_at_0_5": 0.9310344827586207,
+        "tn": 81,
+        "fp": 6,
+        "fn": 149,
+        "tp": 67,
+        "against_vessel_derived_sensitivity_label": {
+          "n": 303,
+          "positive": 217,
+          "negative": 86,
+          "roc_auc": 0.8029685992926803,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7455404029578823,
+            0.8563009055835386
+          ],
+          "average_precision": 0.8872869555247133,
+          "brier_score": 0.3010719884797097,
+          "brier_ci95_stratified_bootstrap": [
+            0.27879844094079226,
+            0.3221716580040258
+          ],
+          "accuracy_at_0_5": 0.49174917491749176,
+          "precision_at_0_5": 0.9315068493150684,
+          "sensitivity_at_0_5": 0.31336405529953915,
+          "specificity_at_0_5": 0.9418604651162791,
+          "tn": 81,
+          "fp": 5,
+          "fn": 149,
+          "tp": 68
+        }
+      },
+      "uci_leave_one_cohort_out": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.8219424460431655,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7725664590278996,
+            0.8662331110721179
+          ],
+          "average_precision": 0.7846883359997827,
+          "brier_score": 0.17704799739708477,
+          "brier_ci95_stratified_bootstrap": [
+            0.1553214403750018,
+            0.19984483300575148
+          ],
+          "accuracy_at_0_5": 0.7491749174917491,
+          "precision_at_0_5": 0.6759776536312849,
+          "sensitivity_at_0_5": 0.8705035971223022,
+          "specificity_at_0_5": 0.6463414634146342,
+          "tn": 106,
+          "fp": 58,
+          "fn": 18,
+          "tp": 121
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.8347551184263348,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7896420865114413,
+            0.8788990365315135
+          ],
+          "average_precision": 0.7065404154043704,
+          "brier_score": 0.1564460635771679,
+          "brier_ci95_stratified_bootstrap": [
+            0.13306830221758506,
+            0.1800391576532309
+          ],
+          "accuracy_at_0_5": 0.7993197278911565,
+          "precision_at_0_5": 0.7117117117117117,
+          "sensitivity_at_0_5": 0.7452830188679245,
+          "specificity_at_0_5": 0.8297872340425532,
+          "tn": 156,
+          "fp": 32,
+          "fn": 27,
+          "tp": 79
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.7266087643110936,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6433083300434268,
+            0.7967594420318462
+          ],
+          "average_precision": 0.8782949376187839,
+          "brier_score": 0.18034604343557256,
+          "brier_ci95_stratified_bootstrap": [
+            0.1549476476808853,
+            0.20884856633265922
+          ],
+          "accuracy_at_0_5": 0.7,
+          "precision_at_0_5": 0.7908496732026143,
+          "sensitivity_at_0_5": 0.8120805369127517,
+          "specificity_at_0_5": 0.37254901960784315,
+          "tn": 19,
+          "fp": 32,
+          "fn": 28,
+          "tp": 121
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.7076086956521739,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.4711005434782609,
+            0.9217663043478259
+          ],
+          "average_precision": 0.9550879744077523,
+          "brier_score": 0.111101744414155,
+          "brier_ci95_stratified_bootstrap": [
+            0.08294808470808832,
+            0.14170195470551053
+          ],
+          "accuracy_at_0_5": 0.8780487804878049,
+          "precision_at_0_5": 0.9716981132075472,
+          "sensitivity_at_0_5": 0.8956521739130435,
+          "specificity_at_0_5": 0.625,
+          "tn": 5,
+          "fp": 3,
+          "fn": 12,
+          "tp": 103
+        }
+      }
+    },
+    "core_plus_chest_pain_assume_no_flags_asymptomatic": {
+      "features": [
+        "age",
+        "sex",
+        "fbs120",
+        "chest_pain"
+      ],
+      "chest_pain_mapping": "No organizer category flags mapped to asymptomatic (explicit sensitivity assumption).",
+      "organizer_to_each_uci_cohort": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.7157834707843481,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6579005088612038,
+            0.7709044349885945
+          ],
+          "average_precision": 0.5925979847435947,
+          "brier_score": 0.22267719725833374,
+          "brier_ci95_stratified_bootstrap": [
+            0.19892285870494522,
+            0.24769251332331074
+          ],
+          "accuracy_at_0_5": 0.6732673267326733,
+          "precision_at_0_5": 0.6428571428571429,
+          "sensitivity_at_0_5": 0.6474820143884892,
+          "specificity_at_0_5": 0.6951219512195121,
+          "tn": 114,
+          "fp": 50,
+          "fn": 49,
+          "tp": 90
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.7422219991971095,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6854350662384585,
+            0.8006843386190284
+          ],
+          "average_precision": 0.593070971096385,
+          "brier_score": 0.1969802976739022,
+          "brier_ci95_stratified_bootstrap": [
+            0.17746947777413238,
+            0.21678821002089452
+          ],
+          "accuracy_at_0_5": 0.6904761904761905,
+          "precision_at_0_5": 0.6470588235294118,
+          "sensitivity_at_0_5": 0.3113207547169811,
+          "specificity_at_0_5": 0.9042553191489362,
+          "tn": 170,
+          "fp": 18,
+          "fn": 73,
+          "tp": 33
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.6401500197394394,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.5496479799973681,
+            0.7241232398999867
+          ],
+          "average_precision": 0.8144150056366755,
+          "brier_score": 0.20682896951310958,
+          "brier_ci95_stratified_bootstrap": [
+            0.18139234805199436,
+            0.23306200258050624
+          ],
+          "accuracy_at_0_5": 0.67,
+          "precision_at_0_5": 0.7748344370860927,
+          "sensitivity_at_0_5": 0.785234899328859,
+          "specificity_at_0_5": 0.3333333333333333,
+          "tn": 17,
+          "fp": 34,
+          "fn": 32,
+          "tp": 117
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.6657608695652174,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.45434782608695656,
+            0.855461956521739
+          ],
+          "average_precision": 0.9629621460649318,
+          "brier_score": 0.2593618622912423,
+          "brier_ci95_stratified_bootstrap": [
+            0.22373719406513543,
+            0.29661244956025
+          ],
+          "accuracy_at_0_5": 0.5853658536585366,
+          "precision_at_0_5": 0.9705882352941176,
+          "sensitivity_at_0_5": 0.5739130434782609,
+          "specificity_at_0_5": 0.75,
+          "tn": 6,
+          "fp": 2,
+          "fn": 49,
+          "tp": 66
+        }
+      },
+      "all_uci_to_organizer": {
+        "n": 303,
+        "positive": 216,
+        "negative": 87,
+        "roc_auc": 0.7613612175393785,
+        "roc_auc_ci95_stratified_bootstrap": [
+          0.6945236004682843,
+          0.8248470093656876
+        ],
+        "average_precision": 0.8348727951767463,
+        "brier_score": 0.2992485395223421,
+        "brier_ci95_stratified_bootstrap": [
+          0.2746890106094093,
+          0.32298522268214
+        ],
+        "accuracy_at_0_5": 0.504950495049505,
+        "precision_at_0_5": 0.8666666666666667,
+        "sensitivity_at_0_5": 0.3611111111111111,
+        "specificity_at_0_5": 0.8620689655172413,
+        "tn": 75,
+        "fp": 12,
+        "fn": 138,
+        "tp": 78,
+        "against_vessel_derived_sensitivity_label": {
+          "n": 303,
+          "positive": 217,
+          "negative": 86,
+          "roc_auc": 0.7678169542385597,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7010757153574108,
+            0.8299224359661344
+          ],
+          "average_precision": 0.8404187706791549,
+          "brier_score": 0.2986790322944037,
+          "brier_ci95_stratified_bootstrap": [
+            0.2734232692503174,
+            0.323231152694471
+          ],
+          "accuracy_at_0_5": 0.5082508250825083,
+          "precision_at_0_5": 0.8777777777777778,
+          "sensitivity_at_0_5": 0.3640552995391705,
+          "specificity_at_0_5": 0.872093023255814,
+          "tn": 75,
+          "fp": 11,
+          "fn": 138,
+          "tp": 79
+        }
+      },
+      "uci_leave_one_cohort_out": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.8219424460431655,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7725664590278996,
+            0.8662331110721179
+          ],
+          "average_precision": 0.7846883359997827,
+          "brier_score": 0.17704799739708477,
+          "brier_ci95_stratified_bootstrap": [
+            0.1553214403750018,
+            0.19984483300575148
+          ],
+          "accuracy_at_0_5": 0.7491749174917491,
+          "precision_at_0_5": 0.6759776536312849,
+          "sensitivity_at_0_5": 0.8705035971223022,
+          "specificity_at_0_5": 0.6463414634146342,
+          "tn": 106,
+          "fp": 58,
+          "fn": 18,
+          "tp": 121
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.8347551184263348,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7896420865114413,
+            0.8788990365315135
+          ],
+          "average_precision": 0.7065404154043704,
+          "brier_score": 0.1564460635771679,
+          "brier_ci95_stratified_bootstrap": [
+            0.13306830221758506,
+            0.1800391576532309
+          ],
+          "accuracy_at_0_5": 0.7993197278911565,
+          "precision_at_0_5": 0.7117117117117117,
+          "sensitivity_at_0_5": 0.7452830188679245,
+          "specificity_at_0_5": 0.8297872340425532,
+          "tn": 156,
+          "fp": 32,
+          "fn": 27,
+          "tp": 79
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.7266087643110936,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6433083300434268,
+            0.7967594420318462
+          ],
+          "average_precision": 0.8782949376187839,
+          "brier_score": 0.18034604343557256,
+          "brier_ci95_stratified_bootstrap": [
+            0.1549476476808853,
+            0.20884856633265922
+          ],
+          "accuracy_at_0_5": 0.7,
+          "precision_at_0_5": 0.7908496732026143,
+          "sensitivity_at_0_5": 0.8120805369127517,
+          "specificity_at_0_5": 0.37254901960784315,
+          "tn": 19,
+          "fp": 32,
+          "fn": 28,
+          "tp": 121
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.7076086956521739,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.4711005434782609,
+            0.9217663043478259
+          ],
+          "average_precision": 0.9550879744077523,
+          "brier_score": 0.111101744414155,
+          "brier_ci95_stratified_bootstrap": [
+            0.08294808470808832,
+            0.14170195470551053
+          ],
+          "accuracy_at_0_5": 0.8780487804878049,
+          "precision_at_0_5": 0.9716981132075472,
+          "sensitivity_at_0_5": 0.8956521739130435,
+          "specificity_at_0_5": 0.625,
+          "tn": 5,
+          "fp": 3,
+          "fn": 12,
+          "tp": 103
+        }
+      }
+    },
+    "expanded_bp_and_chest_pain": {
+      "features": [
+        "age",
+        "sex",
+        "fbs120",
+        "bp",
+        "chest_pain"
+      ],
+      "chest_pain_mapping": "No organizer category flags retained as a separate no_category_flag value.",
+      "organizer_to_each_uci_cohort": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.7276715213195298,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6705688497982102,
+            0.7823751974030532
+          ],
+          "average_precision": 0.604336671858752,
+          "brier_score": 0.21841438667038277,
+          "brier_ci95_stratified_bootstrap": [
+            0.19302548264428243,
+            0.2452141713901001
+          ],
+          "accuracy_at_0_5": 0.6864686468646864,
+          "precision_at_0_5": 0.6447368421052632,
+          "sensitivity_at_0_5": 0.7050359712230215,
+          "specificity_at_0_5": 0.6707317073170732,
+          "tn": 110,
+          "fp": 54,
+          "fn": 41,
+          "tp": 98
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.7443797671617824,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6847369279405862,
+            0.8035182908470494
+          ],
+          "average_precision": 0.6142703246553677,
+          "brier_score": 0.19312514221331697,
+          "brier_ci95_stratified_bootstrap": [
+            0.1711196719496181,
+            0.21534405319183625
+          ],
+          "accuracy_at_0_5": 0.7108843537414966,
+          "precision_at_0_5": 0.6153846153846154,
+          "sensitivity_at_0_5": 0.5283018867924528,
+          "specificity_at_0_5": 0.8138297872340425,
+          "tn": 153,
+          "fp": 35,
+          "fn": 50,
+          "tp": 56
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.6515988945913935,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.5653358994604553,
+            0.7353023424134755
+          ],
+          "average_precision": 0.8272816834304328,
+          "brier_score": 0.20263482707095087,
+          "brier_ci95_stratified_bootstrap": [
+            0.1768617430957161,
+            0.23083035333396826
+          ],
+          "accuracy_at_0_5": 0.7,
+          "precision_at_0_5": 0.7870967741935484,
+          "sensitivity_at_0_5": 0.8187919463087249,
+          "specificity_at_0_5": 0.35294117647058826,
+          "tn": 18,
+          "fp": 33,
+          "fn": 27,
+          "tp": 122
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.6815217391304348,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.44453804347826087,
+            0.8913043478260869
+          ],
+          "average_precision": 0.9594068181715326,
+          "brier_score": 0.24525647934520872,
+          "brier_ci95_stratified_bootstrap": [
+            0.20611559013585656,
+            0.28649276241529853
+          ],
+          "accuracy_at_0_5": 0.6585365853658537,
+          "precision_at_0_5": 0.974025974025974,
+          "sensitivity_at_0_5": 0.6521739130434783,
+          "specificity_at_0_5": 0.75,
+          "tn": 6,
+          "fp": 2,
+          "fn": 40,
+          "tp": 75
+        }
+      },
+      "all_uci_to_organizer": {
+        "n": 303,
+        "positive": 216,
+        "negative": 87,
+        "roc_auc": 0.7973073648361004,
+        "roc_auc_ci95_stratified_bootstrap": [
+          0.7402471796509152,
+          0.8526434120902511
+        ],
+        "average_precision": 0.8842575230853308,
+        "brier_score": 0.31152633572386756,
+        "brier_ci95_stratified_bootstrap": [
+          0.2887718728152538,
+          0.3320517444352852
+        ],
+        "accuracy_at_0_5": 0.46864686468646866,
+        "precision_at_0_5": 0.9104477611940298,
+        "sensitivity_at_0_5": 0.2824074074074074,
+        "specificity_at_0_5": 0.9310344827586207,
+        "tn": 81,
+        "fp": 6,
+        "fn": 155,
+        "tp": 61,
+        "against_vessel_derived_sensitivity_label": {
+          "n": 303,
+          "positive": 217,
+          "negative": 86,
+          "roc_auc": 0.8050584074590076,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7484567570464044,
+            0.8575541206730254
+          ],
+          "average_precision": 0.8912546215564319,
+          "brier_score": 0.31110263255573223,
+          "brier_ci95_stratified_bootstrap": [
+            0.28869081014296805,
+            0.3316611316949878
+          ],
+          "accuracy_at_0_5": 0.47194719471947194,
+          "precision_at_0_5": 0.9253731343283582,
+          "sensitivity_at_0_5": 0.2857142857142857,
+          "specificity_at_0_5": 0.9418604651162791,
+          "tn": 81,
+          "fp": 5,
+          "fn": 155,
+          "tp": 62
+        }
+      },
+      "uci_leave_one_cohort_out": {
+        "cleveland": {
+          "n": 303,
+          "positive": 139,
+          "negative": 164,
+          "roc_auc": 0.8229513949815758,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7738753509387611,
+            0.8676566064221792
+          ],
+          "average_precision": 0.7839053435727974,
+          "brier_score": 0.1766971214493344,
+          "brier_ci95_stratified_bootstrap": [
+            0.15434098864458634,
+            0.19983669820070854
+          ],
+          "accuracy_at_0_5": 0.7491749174917491,
+          "precision_at_0_5": 0.6779661016949152,
+          "sensitivity_at_0_5": 0.8633093525179856,
+          "specificity_at_0_5": 0.6524390243902439,
+          "tn": 107,
+          "fp": 57,
+          "fn": 19,
+          "tp": 120
+        },
+        "hungary": {
+          "n": 294,
+          "positive": 106,
+          "negative": 188,
+          "roc_auc": 0.8362605379365716,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.7906400541951024,
+            0.8811264301485348
+          ],
+          "average_precision": 0.7172755539163322,
+          "brier_score": 0.15760694163581362,
+          "brier_ci95_stratified_bootstrap": [
+            0.13402465334322564,
+            0.18085049235137562
+          ],
+          "accuracy_at_0_5": 0.7993197278911565,
+          "precision_at_0_5": 0.7079646017699115,
+          "sensitivity_at_0_5": 0.7547169811320755,
+          "specificity_at_0_5": 0.824468085106383,
+          "tn": 155,
+          "fp": 33,
+          "fn": 26,
+          "tp": 80
+        },
+        "long_beach_va": {
+          "n": 200,
+          "positive": 149,
+          "negative": 51,
+          "roc_auc": 0.6982497697065404,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.6084254507171997,
+            0.774843729438084
+          ],
+          "average_precision": 0.8633795593872268,
+          "brier_score": 0.1812967676224873,
+          "brier_ci95_stratified_bootstrap": [
+            0.15707985549689849,
+            0.2098529776612847
+          ],
+          "accuracy_at_0_5": 0.735,
+          "precision_at_0_5": 0.8,
+          "sensitivity_at_0_5": 0.8590604026845637,
+          "specificity_at_0_5": 0.37254901960784315,
+          "tn": 19,
+          "fp": 32,
+          "fn": 21,
+          "tp": 128
+        },
+        "switzerland": {
+          "n": 123,
+          "positive": 115,
+          "negative": 8,
+          "roc_auc": 0.7250000000000001,
+          "roc_auc_ci95_stratified_bootstrap": [
+            0.4835869565217391,
+            0.9250271739130433
+          ],
+          "average_precision": 0.9543091653648149,
+          "brier_score": 0.1109990516525838,
+          "brier_ci95_stratified_bootstrap": [
+            0.08334834706731624,
+            0.14316616155778514
+          ],
+          "accuracy_at_0_5": 0.8861788617886179,
+          "precision_at_0_5": 0.9719626168224299,
+          "sensitivity_at_0_5": 0.9043478260869565,
+          "specificity_at_0_5": 0.625,
+          "tn": 5,
+          "fp": 3,
+          "fn": 11,
+          "tp": 104
+        }
+      }
+    }
+  },
+  "compatibility": "These source-harmonized experiments do not produce an app-ready model. The organizer application uses a 55-feature schema; this study tests only shared fields and keeps both datasets and models separate.",
+  "limitations": [
+    "Only two source families are available and both are historical, angiography-selected cohorts; transfer does not establish prospective clinical validity.",
+    "The UCI 45 cohorts have pronounced label prevalence and missingness differences, including only eight CAD-negative Switzerland records.",
+    "Chest-pain and blood-pressure mappings are explicit sensitivity assumptions; interpret the core and extensions separately.",
+    "Performance at threshold 0.5 is not a recommended operating point; calibration and clinical utility need independent data and decision costs.",
+    "Without patient identifiers, exact cross-source duplicate detection is not possible."
+  ],
+  "software": {
+    "scikit_learn": "1.9.1",
+    "pandas": "2.3.3"
+  },
+  "seed": 2026,
+  "source_links": {
+    "organizer": "https://archive.ics.uci.edu/dataset/411/extention+of+z+alizadeh+sani+dataset",
+    "uci45": "https://archive.ics.uci.edu/dataset/45/heart+disease"
+  }
+}
