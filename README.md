@@ -4,6 +4,8 @@ Multimodal AI Hackathon 2026 | Team of 4
 
 This file is our single source of truth. It covers what the problem statement asks for, how we will build it, which tool is used for what, and who does which part. Keep it updated as we go.
 
+> **Implementation status (2026-10-09):** This README describes the planned four-person product, not a claim that the full app is already implemented. M1's current deliverable is an internal four-target logistic-regression baseline with a leakage-safe training/evaluation pipeline and an exact additive log-odds explanation helper. That helper is not SHAP. See [`ROADMAP.md`](ROADMAP.md) for ownership/status and [`reports/m1_handoff.md`](reports/m1_handoff.md) for the current interface, outputs and limitations. The backend, 3D viewer and dashboard are still team integration work. This is not a clinically validated system.
+
 ---
 
 ## Table of Contents
@@ -75,7 +77,7 @@ This is every requirement in the PDF, broken down with how we meet it and who ow
 
 | ID | Requirement from PS | How we meet it | Owner |
 |---|---|---|---|
-| R1 | Train classification models to predict overall CAD status | One calibrated classifier for CAD | M1 |
+| R1 | Train classification models to predict overall CAD status | Current M1 baseline: raw logistic classifier; sigmoid calibration is retained as an experimental comparison and is not selected for app predictions | M1 |
 | R2 | Predict stenosis status for LAD, LCX, RCA | Three more classifiers, one per vessel (4 models total) | M1 |
 | R3 | Use demographic, clinical exam, ECG, lab and echo features | Use all available input columns, grouped by category | M1 |
 | R4 | Exclude LAD, LCX, RCA and Cath from the input features | Hard-coded drop list in config, plus an automated test that fails if any of them appear in the feature list | M1 + M2 |

@@ -3,7 +3,7 @@
 **Project:** Cardiovascular Risk Visualization & Prediction  
 **Team:** M1 (ML), M2 (Backend and integration), M3 (3D), M4 (Frontend, docs and video)  
 **Plan source:** [`README.md`](README.md) contains the detailed requirements, architecture and implementation notes. This file is the short execution tracker.  
-**Last checked:** 2026-10-08
+**Last checked:** 2026-10-09
 
 > Update this page as work is completed. A task is **Ready** only when its listed output exists, its acceptance checks pass, and the next owner has enough information to use it.
 
@@ -12,19 +12,19 @@
 | Area | Owner | Status | Ready means |
 |---|---|---|---|
 | Project planning | All | Ready | Roles, scope and intended interfaces are documented in `README.md`. |
-| ML and data pipeline | M1 | In progress | Reproducible training artifacts, metrics and explanation helper are handed to M2/M4. |
+| ML and data pipeline | M1 | Ready for integration | Reproducible demo artifacts, metrics, figures, metadata notes and explanation helper are handed to M2/M4. |
 | Backend and integration | M2 | Not started | API runs from a clean setup and matches the agreed response contract. |
 | 3D experience | M3 | Not started | Heart scene responds to API probabilities and supports the agreed interactions. |
 | Dashboard and submission materials | M4 | Not started | The complete user flow, report and demo are ready. |
 
-**Repository baseline (2026-10-08):** The organizer ZIP and extracted workbook are preserved in `data/raw/`; their workbook payload hashes match. The initial data audit is complete, `Cath` is mapped as the observed CAD label, and one disagreement with the vessel-derived rule is documented for sensitivity analysis. Target/feature configs and a repeatable logistic-regression baseline training script are present; model training is pending dependency installation. M2–M4 implementation remains not started. Change statuses only when there is evidence in the repo or a linked issue/PR.
+**Repository baseline (2026-10-09):** The organizer ZIP and extracted workbook are preserved in `data/raw/`; their workbook payload hashes match. The data audit, leakage-safe preprocessing, four-target logistic baselines, training-only candidate/calibration/threshold/split/ablation analyses, exact logistic explanation helper and retraining script are complete. A fresh run regenerated the evaluation JSON, four report figures and model artifacts. Feature units and clinical reference ranges are not supplied by the workbook and remain explicitly unset in the shared feature config; see `reports/feature_metadata.md`. M1 is ready for M2/M4 integration as an internal demonstration component, not as a clinically validated model. M2–M4 implementation remains not started.
 
 ## Milestones
 
 | Milestone | Goal | Exit check | Status |
 |---|---|---|---|
 | M0 — Contract frozen | Agree on targets, features, API response, artery keys, branch/review process and deadline. | M1/M2/M3/M4 confirm the shared contract; M2's mock response is available to M3/M4. | Not started |
-| M1 — Foundations | Each owner has a first usable component. | M1 has EDA/config/baseline plan; M2 has mock API; M3 has a rotating scene or documented mesh fallback; M4 has UI shell/store/disclaimer. | In progress (M1 data audit) |
+| M1 — Foundations | Each owner has a first usable component. | M1 has EDA/config/baseline outputs; M2 has mock API; M3 has a rotating scene or documented mesh fallback; M4 has UI shell/store/disclaimer. | M1 ready; other owners not started |
 | M2 — Vertical slice | Demonstrate one end-to-end prediction. | Patient input → API → CAD/vessel probabilities and explanation → dashboard and 3D colors. | Not started |
 | M3 — Feature complete | Finish required interactions and integration. | Core acceptance checklist below passes; only polish and documentation remain. | Not started |
 | M4 — Freeze and submit | Package a reproducible, explainable demo. | Clean setup succeeds, report/video links work, limitations and credits are documented. | Not started |
@@ -39,16 +39,16 @@ The README's Day 0–7 schedule is a relative sequence, not a calendar commitmen
 
 | Work | Status | Output / acceptance check | Handoff |
 |---|---|---|---|
-| Inspect dataset; record column names, types, missingness, duplicates, class balance and units. Confirm which column is the overall CAD label. | In review | `reports/data_audit.md` and `.json` record the 303-row audit; `Cath` is primary and its one vessel-rule disagreement is retained for sensitivity analysis. Units still need verification. | M2, M4 |
-| Create feature/target configs and one shared leakage-exclusion function. | In review | `features.yaml`, `targets.yaml`, and `ml/data_prep.py` are present; outcomes are excluded from X. Units and ranges remain open. | M2, M4 |
-| Build reproducible preprocessing and stratified data split. | In progress | `ml/train_baseline.py` keeps preprocessing inside each fold and reserves a fixed, stratified holdout; split seed and counts are written to the report. | M2 |
-| Train and compare baselines for CAD, LAD, LCX and RCA; calibrate and choose thresholds. | In progress | Logistic regression and fixed forest are compared on training-only repeated folds; no stable forest win. Sigmoid calibration and nested training-only calibrated threshold curves are documented but not selected for deployment. Repeated splits show broad LCX/RCA variation. Team must agree on probability/uncertainty presentation; no clinical threshold is claimed. | M2, M4 |
-| Save deployment models and metadata. | Not started | Per-target model artifacts include feature list, threshold, metrics, versions, date and seed. | M2 |
-| Implement per-patient explanation helper and generate report figures. | In progress | `ml/explain.py` returns exact grouped logistic log-odds contributions and raw probability; handoff contract is in `reports/explainability.md`. It does not explain the experimental calibrated or forest models yet. | M2, M4 |
-| Run the mathematical robustness review and sensitivity experiments. | In progress | Per-target bootstrap intervals, repeated-split spread, paired model comparison and feature-group ablations are recorded. Calibrated operating points and remaining input/label failure cases still need review. | M2, M4 |
-| Add one-command retraining and ML report section. | Not started | Training can be rebuilt from documented raw data; report numbers trace to saved outputs. | All |
+| Inspect dataset; record column names, types, missingness, duplicates, class balance and units. Confirm which column is the overall CAD label. | Ready (metadata limitation documented) | `reports/data_audit.md` and `.json` record the 303-row audit; `Cath` is primary and its one vessel-rule disagreement is retained. Workbook unit/reference-range metadata is absent; `reports/feature_metadata.md` records the gap and safe interface policy. | M2, M4 |
+| Create feature/target configs and one shared leakage-exclusion function. | Ready | `features.yaml`, `targets.yaml`, and `ml/data_prep.py` are present; all outcomes are excluded from predictors. Units/ranges remain null pending authoritative confirmation. | M2, M4 |
+| Build reproducible preprocessing and stratified data split. | Ready | Preprocessing is fit inside each fold; fixed stratified holdout, seed and row indices are recorded in the generated evaluation JSON. | M2 |
+| Train and compare baselines for CAD, LAD, LCX and RCA; evaluate calibration and thresholds. | Ready (internal analysis) | Logistic regression and fixed forest compared on training-only repeated folds; no stable forest winner. Sigmoid calibration and nested training-only threshold curves are reported as experimental/descriptive. No clinical threshold is claimed. | M2, M4 |
+| Save reproducible demo models and metadata. | Ready | Four raw logistic pipelines plus experimental calibrated artifacts; evaluation JSON records hashes, predictor schema, versions, data hash, split rows, seed and metrics. These are not clinically deployable models. | M2 |
+| Implement per-patient explanation helper and generate report figures. | Ready | `ml/explain.py` returns exact grouped logistic log-odds contributions; `reports/explainability.md` defines the handoff. Four report figures and global grouped contributions are emitted by retraining. Not SHAP; calibrated/tree artifacts do not use this helper. | M2, M4 |
+| Run the mathematical robustness review and sensitivity experiments. | Ready (internal checks) | Holdout bootstrap intervals, repeated-split spread, paired model comparison, feature-group ablations and calibrated threshold trade-offs are recorded. External validation and verified clinical input limits remain unavailable. | M2, M4 |
+| Add one-command retraining and ML report section. | Ready | From repo root: `python -m ml.train_baseline`; it writes model artifacts, `artifacts/baseline/evaluation.json`, `reports/metrics.json` and figures. | All |
 
-**M1 ready to hand off when:** M2 can load all four models and call the explanation helper using the documented configs; M4 can use `reports/metrics.json` and figures without reconstructing results.
+**M1 handoff:** M2 can load the four raw logistic artifacts and call the explanation helper using the documented configs; M4 can consume `reports/metrics.json` and `reports/figures/` directly. Integration is the next team task. Feature units/reference ranges are unset; external validation is outstanding. See `reports/m1_handoff.md`.
 
 ### M2 — Backend and integration
 

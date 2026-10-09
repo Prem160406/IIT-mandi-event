@@ -153,3 +153,45 @@ def explain_one(
         "interpretation_warning": "Model contributions describe this model's calculation; they are not causal effects or medical advice.",
         "feature_contributions": explanation,
     }
+
+
+def summarize_global_contributions(
+    rows: pd.DataFrame,
+    *,
+    model: Pipeline,
+) -> list[dict[str, Any]]:
+    """Rank mean absolute grouped log-odds contributions over supplied rows."""
+    frame = _as_single_row(rows.iloc[[0]]) if len(rows) == 1 else canonicalize_features(rows.copy())
+    frame = frame.drop(columns=[name for name in OUTCOME_COLUMNS if name in frame.columns])
+    expected = list(model.feature_names_in_)
+    missing = [name for name in expected if name not in frame.columns]
+    unexpected = [name for name in frame.columns if name not in expected]
+    if missing or unexpected:
+        raise ValueError(f"Feature mismatch; missing={missing}, unexpected={unexpected}")
+    frame = frame.loc[:, expected]
+
+    preprocessor = model.named_steps["preprocess"]
+    classifier = model.named_steps["classifier"]
+    transformed = preprocessor.transform(frame)
+    if sparse.issparse(transformed):
+        transformed = transformed.toarray()
+    transformed = np.asarray(transformed, dtype="float64")
+    coefficients = np.asarray(classifier.coef_, dtype="float64")[0]
+    origins = _feature_origins(preprocessor)
+    if transformed.shape[1] != len(origins) or transformed.shape[1] != len(coefficients):
+        raise RuntimeError("Could not map transformed columns to source features")
+
+    grouped = np.zeros((len(frame), len(expected)), dtype="float64")
+    source_indices = {name: index for index, name in enumerate(expected)}
+    for output_index, source_feature in enumerate(origins):
+        grouped[:, source_indices[source_feature]] += transformed[:, output_index] * coefficients[output_index]
+
+    importance = np.mean(np.abs(grouped), axis=0)
+    return [
+        {
+            "feature": expected[index],
+            "mean_absolute_log_odds_contribution": float(importance[index]),
+            "rows_summarized": int(len(frame)),
+        }
+        for index in np.argsort(importance)[::-1]
+    ]

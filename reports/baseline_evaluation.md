@@ -6,6 +6,10 @@
 **Model artifacts:** [`artifacts/baseline/`](../artifacts/baseline/)  
 **Reproduce:** `python -m ml.train_baseline`
 
+**Figures:** [holdout ROC](figures/holdout_roc.png) · [holdout calibration](figures/holdout_calibration.png) · [confusion matrices](figures/holdout_confusion_matrices.png) · [global raw-logistic contributions](figures/global_logistic_contributions.png)
+
+The last figure summarizes exact mean absolute grouped log-odds contributions over training records. It is a description of the fitted logistic model, not SHAP, causation or clinical importance.
+
 ## Protocol
 
 - Four separate binary classifiers: CAD (`Cath`), LAD, LCX and RCA. Every target/outcome column is removed from predictors for every model.
@@ -106,4 +110,4 @@ ECG removal slightly improves mean AUC for LAD/LCX/RCA, while removing demograph
 
 The CAD and LAD baseline results look stronger than LCX and RCA on this one split, but a 303-record dataset and a 61-record holdout make the estimates noisy. The train-only CV spread and holdout differences show why these scores are not proof of generalization. Do not use them as clinical performance claims. In particular, the LCX/RCA operating-point metrics show substantial false negatives at the fixed threshold; changing a threshold requires an explicitly chosen use case and training-only analysis.
 
-Next M1 actions: integrate the explanation helper with M2's API, agree with the team on how continuous probabilities and uncertainty will be shown, and record remaining failure modes. External validation is required before claims about performance in another population.
+M1 integration outputs are summarized in [`m1_handoff.md`](m1_handoff.md). M2 should integrate the raw logistic probability with its matching explanation helper; M4 can consume `reports/metrics.json` and the figures linked above. Units and clinical reference ranges remain unknown and unset (see [`feature_metadata.md`](feature_metadata.md)). External validation is required before claims about performance in another population.

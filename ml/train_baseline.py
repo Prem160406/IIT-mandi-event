@@ -32,6 +32,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     roc_auc_score,
+    roc_curve,
 )
 from sklearn.model_selection import (
     RepeatedStratifiedKFold,
@@ -45,6 +46,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from ml.data_prep import DEFAULT_DATA_PATH, DEFAULT_TARGET_CONFIG, build_xy, load_dataset, load_target_config
+from ml.explain import summarize_global_contributions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,7 +57,8 @@ TEST_SIZE = 0.20
 THRESHOLD = 0.5
 BOOTSTRAP_REPLICATES = 2000
 RECORDED_PACKAGES = (
-    "cloudpickle", "et-xmlfile", "joblib", "narwhals", "numpy", "openpyxl", "pandas",
+    "cloudpickle", "contourpy", "cycler", "et-xmlfile", "fonttools", "joblib", "kiwisolver",
+    "matplotlib", "narwhals", "numpy", "openpyxl", "packaging", "pandas", "pillow", "pyparsing",
     "python-dateutil", "pytz", "PyYAML", "scikit-learn", "scipy", "six", "threadpoolctl", "tzdata",
 )
 
@@ -66,6 +69,78 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def save_report_figures(plot_data: dict[str, dict[str, Any]], results: list[dict[str, Any]]) -> list[str]:
+    """Create report-ready holdout ROC, calibration, confusion and global-contribution figures."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from sklearn.calibration import calibration_curve
+
+    figure_dir = ROOT / "reports" / "figures"
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    targets = list(plot_data)
+    figure_files = []
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8), constrained_layout=True)
+    for ax, target in zip(axes.flat, targets):
+        values = plot_data[target]
+        for label, key in (("Raw logistic", "raw_probabilities"), ("Sigmoid calibrated", "calibrated_probabilities")):
+            fpr, tpr, _ = roc_curve(values["y_true"], values[key])
+            auc = roc_auc_score(values["y_true"], values[key])
+            ax.plot(fpr, tpr, label=f"{label} (AUC={auc:.2f})")
+        ax.plot([0, 1], [0, 1], color="gray", linestyle="--", linewidth=1)
+        ax.set(title=target, xlabel="False-positive rate", ylabel="Sensitivity")
+        ax.legend(fontsize=8, loc="lower right")
+    fig.suptitle("Holdout ROC curves (61 records per target; exploratory)")
+    path = figure_dir / "holdout_roc.png"
+    fig.savefig(path, dpi=180)
+    plt.close(fig)
+    figure_files.append(str(path.relative_to(ROOT)).replace("\\", "/"))
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8), constrained_layout=True)
+    for ax, target in zip(axes.flat, targets):
+        values = plot_data[target]
+        for label, key in (("Raw logistic", "raw_probabilities"), ("Sigmoid calibrated", "calibrated_probabilities")):
+            fraction_positive, mean_predicted = calibration_curve(
+                values["y_true"], values[key], n_bins=5, strategy="quantile"
+            )
+            ax.plot(mean_predicted, fraction_positive, marker="o", label=label)
+        ax.plot([0, 1], [0, 1], color="gray", linestyle="--", linewidth=1)
+        ax.set(title=target, xlabel="Mean predicted probability", ylabel="Observed positive fraction", xlim=(0, 1), ylim=(0, 1))
+        ax.legend(fontsize=8, loc="upper left")
+    fig.suptitle("Holdout calibration curves (quantile bins; exploratory)")
+    path = figure_dir / "holdout_calibration.png"
+    fig.savefig(path, dpi=180)
+    plt.close(fig)
+    figure_files.append(str(path.relative_to(ROOT)).replace("\\", "/"))
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8), constrained_layout=True)
+    for ax, target in zip(axes.flat, targets):
+        matrix = np.asarray(plot_data[target]["raw_confusion_matrix"])
+        ax.imshow(matrix, cmap="Blues")
+        for (row, column), value in np.ndenumerate(matrix):
+            ax.text(column, row, str(value), ha="center", va="center", color="black")
+        ax.set(title=target, xlabel="Predicted (0=negative, 1=positive)", ylabel="Observed (0=negative, 1=positive)", xticks=[0, 1], yticks=[0, 1])
+    fig.suptitle("Raw logistic holdout confusion matrices at threshold 0.5")
+    path = figure_dir / "holdout_confusion_matrices.png"
+    fig.savefig(path, dpi=180)
+    plt.close(fig)
+    figure_files.append(str(path.relative_to(ROOT)).replace("\\", "/"))
+
+    fig, axes = plt.subplots(2, 2, figsize=(11, 9), constrained_layout=True)
+    for ax, result in zip(axes.flat, results):
+        top = result["global_feature_contributions"][:10][::-1]
+        ax.barh([item["feature"] for item in top], [item["mean_absolute_log_odds_contribution"] for item in top])
+        ax.set(title=result["target"], xlabel="Mean absolute contribution (log-odds)")
+    fig.suptitle("Global raw-logistic model contributions on training records")
+    path = figure_dir / "global_logistic_contributions.png"
+    fig.savefig(path, dpi=180)
+    plt.close(fig)
+    figure_files.append(str(path.relative_to(ROOT)).replace("\\", "/"))
+    return figure_files
 
 
 def load_feature_groups(path: Path = DEFAULT_FEATURE_CONFIG) -> dict[str, list[str]]:
@@ -383,6 +458,7 @@ def evaluate_target(
     split_sensitivity_results = split_sensitivity(X, y)
 
     estimator.fit(X_train, y_train)
+    global_contributions = summarize_global_contributions(X_train, model=estimator)
     test_probabilities = estimator.predict_proba(X_test)[:, 1]
     holdout = metrics(y_test, test_probabilities)
     target_seed = SEED + ("CAD", "LAD", "LCX", "RCA").index(target)
@@ -425,6 +501,7 @@ def evaluate_target(
         "class_counts_full_dataset": {str(k): int(v) for k, v in y.value_counts().sort_index().items()},
         "predictor_count": int(X.shape[1]),
         "predictor_names": X.columns.tolist(),
+        "global_feature_contributions": global_contributions,
         "excluded_outcome_columns": sorted(outcomes),
         "cross_validation": {
             "scheme": "5-fold stratified CV repeated 3 times on training partition only",
@@ -486,6 +563,12 @@ def evaluate_target(
             "scikit_learn": sklearn.__version__,
             "packages": {name: importlib.metadata.version(name) for name in RECORDED_PACKAGES},
         },
+        "_plot_data": {
+            "y_true": y_test.astype("int8").tolist(),
+            "raw_probabilities": test_probabilities.astype("float64").tolist(),
+            "calibrated_probabilities": calibrated_probabilities.astype("float64").tolist(),
+            "raw_confusion_matrix": holdout["confusion_matrix_labels_0_1"],
+        },
     }
 
 
@@ -503,6 +586,8 @@ def main() -> None:
         evaluate_target(frame, target, target_config, args.data, args.output)
         for target in args.targets
     ]
+    plot_data = {result["target"]: result.pop("_plot_data") for result in results}
+    figure_files = save_report_figures(plot_data, results)
     report = {
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "purpose": "Internal baseline only; not for diagnosis or treatment decisions.",
@@ -516,11 +601,15 @@ def main() -> None:
             },
             "selection": "Predeclared comparison on repeated CV of training partition only; holdout is reserved for the logistic baseline and not used to select between candidates.",
         },
+        "figures": figure_files,
         "targets": results,
     }
     report_path = args.output / "evaluation.json"
-    report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
-    print(f"Saved baseline models and evaluation report to {args.output}")
+    report_text = json.dumps(report, indent=2)
+    report_path.write_text(report_text, encoding="utf-8")
+    metrics_path = ROOT / "reports" / "metrics.json"
+    metrics_path.write_text(report_text, encoding="utf-8")
+    print(f"Saved baseline models to {args.output}; evaluation report to {report_path} and {metrics_path}")
 
 
 if __name__ == "__main__":
