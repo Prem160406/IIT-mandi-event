@@ -8,6 +8,7 @@
 - `ml/explain.py::explain_one(target, row)` returns a raw logistic probability plus exact feature-level additive contributions in log-odds. For a complete M2/M4 response shape, see `reports/explainability.md`.
 - `config/targets.yaml` and `config/features.yaml` define target mapping and model input schema. All recorded outcomes are excluded from every model's inputs.
 - `reports/feature_metadata.md` defines the current limitation around unknown units and input/reference ranges.
+- A second source, UCI Heart Disease (dataset 45), is now staged and ETL'd into a cohort-tagged 920-row table for a CAD-only study. It is not integrated into the current four saved models; see [`uci_heart_disease_45_audit.md`](uci_heart_disease_45_audit.md) for schema, missingness, source-shift and vessel-label caveats.
 
 ## Model selection and interpretation
 
