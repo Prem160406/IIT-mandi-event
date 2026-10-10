@@ -1,0 +1,26 @@
+{
+  "arteries": [
+    {
+      "key": "LAD",
+      "label": "Left Anterior Descending",
+      "meshNode": "LAD",
+      "target": "LAD"
+    },
+    {
+      "key": "LCX",
+      "label": "Left Circumflex",
+      "meshNode": "LCX",
+      "target": "LCX"
+    },
+    {
+      "key": "RCA",
+      "label": "Right Coronary Artery",
+      "meshNode": "RCA",
+      "target": "RCA"
+    }
+  ],
+  "riskLevels": {
+    "low": 0.35,
+    "high": 0.65
+  }
+}
