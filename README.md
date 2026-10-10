@@ -4,7 +4,7 @@ Multimodal AI Hackathon 2026 | Team of 4
 
 This file is our single source of truth. It covers what the problem statement asks for, how we will build it, which tool is used for what, and who does which part. Keep it updated as we go.
 
-> **Implementation status (2026-10-10):** This README describes the planned four-person product, not a claim that the full app is already implemented. M1 has an internal four-target logistic-regression baseline with leakage-safe training/evaluation and exact additive log-odds explanations; the helper is not SHAP. The M2 FastAPI backend is merged into `main`, and its four API tests pass in the current environment. M3/M4 contract review, clean-environment setup verification, 3D viewer and dashboard integration remain. See [`ROADMAP.md`](ROADMAP.md), [`reports/m1_handoff.md`](reports/m1_handoff.md), and [`reports/backend_integration_handoff.md`](reports/backend_integration_handoff.md). This is not a clinically validated system.
+> **Implementation status (2026-10-10):** This README describes the planned four-person product, not a claim that the full app is already implemented. M1 has an internal four-target logistic-regression baseline with leakage-safe training/evaluation and exact additive log-odds explanations; the helper is not SHAP. An M2 FastAPI backend implementation is staged on a mainline-based integration branch, but its runtime behavior and API contract still need team verification. The 3D viewer and dashboard remain integration work. See [`ROADMAP.md`](ROADMAP.md) and [`reports/m1_handoff.md`](reports/m1_handoff.md). This is not a clinically validated system.
 
 ---
 

@@ -13,11 +13,11 @@
 |---|---|---|---|
 | Project planning | All | Ready | Roles, scope and intended interfaces are documented in `README.md`. |
 | ML and data pipeline | M1 | Ready for integration | Reproducible demo artifacts, metrics, figures, metadata notes and explanation helper are handed to M2/M4. |
-| Backend and integration | M2 | Merged; API tests pass | FastAPI backend is on `main`; four endpoint/schema tests pass locally. M3/M4 contract review, clean-clone setup and UI integration remain. |
+| Backend and integration | M2 | Implementation present; validation pending | API, schemas, model loading, config and run scripts are staged; clean setup, endpoint behavior and contract review remain to be verified. |
 | 3D experience | M3 | Not started | Heart scene responds to API probabilities and supports the agreed interactions. |
 | Dashboard and submission materials | M4 | Not started | The complete user flow, report and demo are ready. |
 
-**Repository baseline (2026-10-10):** M1's reproducible four-target baseline and supplemental cross-source analysis are documented above. The M2 backend from `api/backend-integration` was integrated with `main` through `api/backend-integration-mainline`; the merge commit is on `main` and pushed to `origin`. Four backend API tests pass in the current local environment. The original branch is preserved. M3/M4 contract review, clean-clone setup verification and UI integration remain; see `reports/backend_integration_handoff.md`.
+**Repository baseline (2026-10-10):** M1's reproducible four-target baseline and supplemental cross-source analysis are documented above. The M2 backend implementation from `api/backend-integration` is now staged on a mainline-based integration branch with its original branch preserved. API code and tests are present, but runtime verification and M3/M4 contract review are pending; see `backend/` and `backend/tests/`. The backend has not yet been merged into `main`.
 
 ## Milestones
 
@@ -59,10 +59,10 @@ The README's Day 0–7 schedule is a relative sequence, not a calendar commitmen
 | Work | Status | Output / acceptance check | Handoff |
 |---|---|---|---|
 | Freeze API/config contract and publish mock `/predict`. | Draft present; team review pending | `backend/app/schemas.py` defines request/response models and `backend/app/main.py` returns CAD, vessels, explanations, missing fields and disclaimer. M3/M4 still need to review the contract before it is frozen. | M3, M4 |
-| Build config loader and `/health`, `/features`, `/samples`. | Implemented; local API tests pass | `backend/app/config_loader.py` and endpoints are present; feature and artery config files are used. Clean-clone setup still needs verification. | M4 |
-| Implement `/predict` with real models, thresholds, risk levels and explanations; implement `/metrics`. | Implemented; local API tests pass | `backend/app/predictor.py` loads the four raw logistic artifacts once; explanation and metrics adapters are present. M3/M4 must confirm response and display semantics. | M4, M3 |
-| Integrate, add consistency checks and run scripts. | Merged to `main`; UI integration pending | Windows and shell launch scripts are present. API keys align with the artery config; end-to-end UI flow remains unverified. | All |
-| Add API/schema/leakage/config/smoke tests and integration notes. | 4 tests pass locally | `backend/tests/test_api.py` covers endpoint behavior, feature leakage filtering, artery mapping and full/partial inputs. Run command and environment caveat are in `reports/backend_integration_handoff.md`. | All |
+| Build config loader and `/health`, `/features`, `/samples`. | Implemented; validation pending | `backend/app/config_loader.py` and endpoints are present; feature and artery config files are used. Verify against a clean setup. | M4 |
+| Implement `/predict` with real models, thresholds, risk levels and explanations; implement `/metrics`. | Implemented; validation pending | `backend/app/predictor.py` loads the four raw logistic artifacts once; explanation and metrics adapters are present. Confirm response behavior and display semantics. | M4, M3 |
+| Integrate, add consistency checks and run scripts. | Scripts present; integration pending | Windows and shell launch scripts are present. API keys align with the artery config; end-to-end UI flow remains unverified. | All |
+| Add API/schema/leakage/config/smoke tests and integration notes. | Tests present; not run | `backend/tests/test_api.py` covers endpoint, leakage and partial-input behavior. Run after dependency setup and review by M2. | All |
 | Implement input and prediction quality flags for edge cases. | Not started | Missing fields, invalid inputs, low-support targets and CAD/vessel disagreements are handled explicitly in the response/UI contract. | M1, M4 |
 
 **M2 ready to hand off when:** M3/M4 can use the mock immediately, then switch to the real API without changing the agreed response shape.
