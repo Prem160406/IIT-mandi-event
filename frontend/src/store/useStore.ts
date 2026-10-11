@@ -66,7 +66,10 @@ export const useStore = create<Store>((set, get) => ({
     const input = {...get().input};
     if (value === undefined || value === '') delete input[name];
     else input[name] = value;
-    set({input});
+    // The shown result belongs to the old inputs. Drop it (the heart returns to its
+    // neutral state) and ignore any request still in flight for those old inputs.
+    requestId++;
+    set({input, prediction: null, status: 'idle', error: null});
     if (get().settings.live) {
       clearTimeout(liveTimer);
       liveTimer = setTimeout(() => void get().predict(), 300); // debounce (roadmap 13.4)
@@ -76,7 +79,8 @@ export const useStore = create<Store>((set, get) => ({
   loadSample: (id) => {
     const s = get().samples.find((x) => x.id === id);
     if (!s) return;
-    set({input: {...s.features}});
+    clearTimeout(liveTimer);
+    set({input: {...s.features}, prediction: null});
     void get().predict();
   },
 
@@ -88,14 +92,14 @@ export const useStore = create<Store>((set, get) => ({
 
   predict: async () => {
     const id = ++requestId;
-    set({status: 'loading', error: null});
+    set({status: 'loading', error: null, prediction: null});
     try {
       const prediction = await api.predict(get().input);
       if (id !== requestId) return; // a newer request superseded this one
       set({prediction, status: 'ready', backend: 'up'});
     } catch (e) {
       if (id !== requestId) return;
-      set({status: 'error', error: (e as Error).message});
+      set({status: 'error', error: (e as Error).message, prediction: null});
     }
   },
 
