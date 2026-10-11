@@ -13,7 +13,7 @@ From the project root:
     # terminal 2 (frontend)
     cd frontend && npm install && npm run dev      # http://localhost:5173
 
-Or run both with `scripts/run_all.sh` (Mac/Linux) or `scripts/run_all.ps1` (Windows).
+On Windows, double-click `start.bat` to open the API and frontend in separate windows; use `stop.bat` to close those windows. These BAT files track only the processes they started for this checkout. You can also run `scripts/run_all.sh` (Mac/Linux) or `scripts/run_all.ps1` (Windows) manually.
 If the API is elsewhere, copy `.env.example` to `.env` and set `VITE_API_URL`.
 Allowed browser origins are set in the backend (`ALLOWED_ORIGINS`, default `localhost:5173`).
 
