@@ -1,6 +1,7 @@
 import {useEffect, useState, type CSSProperties} from 'react';
 import {Ecg, HeartShape} from '../components/Heartbeat';
-import {APP_NAME, DESCRIPTION, QUOTES, TAGLINE} from '../lib/brand';
+import {DESCRIPTION, QUOTES, TAGLINE} from '../lib/brand';
+import {Wordmark} from '../components/Wordmark';
 
 export function Home() {
   const [bpm, setBpm] = useState(72);
@@ -23,7 +24,7 @@ export function Home() {
       </div>
       <div className="hero-text">
         <p className="eyebrow">Coronary artery disease · risk assessment</p>
-        <h1>{APP_NAME}</h1>
+        <h1 className="hero-wordmark"><Wordmark /></h1>
         <p className="tagline">{TAGLINE}</p>
         <p className="desc">{DESCRIPTION}</p>
         <blockquote key={q} className="quote">“{QUOTES[q]}”</blockquote>

@@ -19,6 +19,7 @@ interface Artery {
   anchor: THREE.Vector3;
   current: THREE.Color;
   target: THREE.Color;
+  outlineMaterial: THREE.MeshBasicMaterial;
 }
 
 /** A label spot on the artery: the vertex nearest to the centre of its mesh. */
@@ -44,10 +45,30 @@ function outlineOf(mesh: THREE.Mesh): THREE.Mesh {
   for (let i = 0; i < pos.count; i++) {
     pos.setXYZ(i, pos.getX(i) + nor.getX(i) * 0.014, pos.getY(i) + nor.getY(i) * 0.014, pos.getZ(i) + nor.getZ(i) * 0.014);
   }
-  const outline = new THREE.Mesh(g, new THREE.MeshBasicMaterial({color: 0x2a0a14, side: THREE.BackSide}));
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x2a0a14, side: THREE.BackSide,
+  });
+  const outline = new THREE.Mesh(g, material);
   outline.name = `${mesh.name}_outline`;
   outline.raycast = () => undefined; // never steals clicks
   return outline;
+}
+
+/** A warm animated outer shell to make a selected artery unmistakable. */
+function selectionOutlineOf(mesh: THREE.Mesh): {mesh: THREE.Mesh; material: THREE.MeshBasicMaterial} {
+  const g = mesh.geometry.clone();
+  const pos = g.getAttribute('position'), nor = g.getAttribute('normal');
+  for (let i = 0; i < pos.count; i++) {
+    pos.setXYZ(i, pos.getX(i) + nor.getX(i) * 0.024, pos.getY(i) + nor.getY(i) * 0.024, pos.getZ(i) + nor.getZ(i) * 0.024);
+  }
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x56fff2, side: THREE.BackSide, transparent: true, toneMapped: false,
+    opacity: 0, depthWrite: false,
+  });
+  const outline = new THREE.Mesh(g, material);
+  outline.name = `${mesh.name}_selection`;
+  outline.raycast = () => undefined; // never steals clicks
+  return {mesh: outline, material};
 }
 
 /** Maps a hit mesh name ("LAD" or "LAD_pick") back to its artery key. */
@@ -72,12 +93,14 @@ export function useHeart() {
       if (!mesh || !mesh.isMesh) { missing.push(def.meshNode); continue; }
       const material = mesh.material as THREE.MeshPhysicalMaterial;
       material.color.set(NEUTRAL);
-      mesh.add(outlineOf(mesh));
+      const selectionOutline = selectionOutlineOf(mesh);
+      mesh.add(outlineOf(mesh), selectionOutline.mesh);
       const pick = root.getObjectByName(`${def.meshNode}_pick`) as THREE.Mesh | undefined;
       if (pick) pick.material = Object.assign((pick.material as THREE.Material).clone(), {visible: false}); // clickable, never drawn
       arteries.push({
         key: def.key, mesh, material, anchor: anchorOf(mesh),
         current: new THREE.Color(NEUTRAL), target: new THREE.Color(NEUTRAL),
+        outlineMaterial: selectionOutline.material,
       });
     }
     const muscle = root.getObjectByName('Ventricle_Muscle') as THREE.Mesh | undefined;
@@ -103,9 +126,13 @@ export function HeartModel({onAnchors}: {onAnchors?: (a: Record<string, THREE.Ve
       a.target.set(riskColor(p, settings.colorBlind));
       a.current.lerp(a.target, k);
       a.material.color.copy(a.current);
-      const active = selectedTarget === a.key || hoveredTarget === a.key;
-      const pulse = p != null && p >= CONFIG.riskLevels.high ? 0.08 * Math.sin(performance.now() / 350) : 0;
-      a.material.emissive.copy(a.current).multiplyScalar((active ? 0.55 : 0.22) + pulse);
+      const selected = selectedTarget === a.key;
+      const hovered = hoveredTarget === a.key;
+      const blink = 0.5 + 0.5 * Math.sin(performance.now() / 1150);
+      const selectionGlow = selected ? 0.42 + 0.3 * blink : 0;
+      a.outlineMaterial.opacity = selected ? 0.68 + 0.3 * blink : hovered ? 0.48 : 0;
+      const riskPulse = p != null && p >= CONFIG.riskLevels.high ? 0.08 * Math.sin(performance.now() / 350) : 0;
+      a.material.emissive.copy(a.current).multiplyScalar(Math.max(selectionGlow, hovered ? 0.55 : 0.22 + riskPulse));
     }
   });
 

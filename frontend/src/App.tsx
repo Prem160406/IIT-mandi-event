@@ -1,7 +1,7 @@
 import {Suspense, lazy, useCallback, useEffect, useState} from 'react';
 import {useStore} from './store/useStore';
-import {APP_NAME} from './lib/brand';
 import {Heartbeat} from './components/Heartbeat';
+import {Wordmark} from './components/Wordmark';
 import {DisclaimerModal} from './components/DisclaimerModal';
 import {Home} from './pages/Home';
 import {InputPage} from './pages/InputPage';
@@ -41,7 +41,7 @@ export default function App() {
     <div className={`app pg-${page}`}>
       <DisclaimerModal open={notice} onClose={closeNotice} />
       <nav className="nav" aria-label="Main">
-        <a className="brand" href="#/home"><Heartbeat size="sm" /><span>{APP_NAME}</span></a>
+        <a className="brand" href="#/home"><Heartbeat size="sm" /><Wordmark /></a>
         <div className="links">
           {PAGES.map((p) => <a key={p.k} href={`#/${p.k}`} aria-current={page === p.k ? 'page' : undefined}>{p.t}</a>)}
         </div>
