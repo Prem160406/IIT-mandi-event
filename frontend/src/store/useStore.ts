@@ -48,7 +48,7 @@ export const useStore = create<Store>((set, get) => ({
   hoveredTarget: null,
   status: 'idle',
   error: null,
-  settings: {colorBlind: false, labels: true, live: false, autoRotate: false},
+  settings: {colorBlind: false, labels: true, live: true, autoRotate: false},
   resetNonce: 0,
 
   init: async () => {
@@ -66,11 +66,17 @@ export const useStore = create<Store>((set, get) => ({
     const input = {...get().input};
     if (value === undefined || value === '') delete input[name];
     else input[name] = value;
+    // BMI is autofilled from height and weight (the dataset's BMI equals weight / (height/100)^2).
+    if (name === 'Weight' || name === 'Length') {
+      const w = Number(input.Weight), h = Number(input.Length);
+      if (input.Weight !== undefined && input.Length !== undefined && w > 0 && h > 0) input.BMI = Math.round((w / (h / 100) ** 2) * 100) / 100;
+      else delete input.BMI;
+    }
     // The shown result belongs to the old inputs. Drop it (the heart returns to its
     // neutral state) and ignore any request still in flight for those old inputs.
     requestId++;
     set({input, prediction: null, status: 'idle', error: null});
-    if (get().settings.live) {
+    if (get().settings.live && Object.keys(input).length > 0) {
       clearTimeout(liveTimer);
       liveTimer = setTimeout(() => void get().predict(), 300); // debounce (roadmap 13.4)
     }
