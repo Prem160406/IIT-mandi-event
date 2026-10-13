@@ -7,6 +7,8 @@ not causation or a medical mechanism.
 
 from __future__ import annotations
 
+import logging
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -16,13 +18,185 @@ import pandas as pd
 from scipy.special import expit
 from scipy import sparse
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
 
-from ml.data_prep import OUTCOME_COLUMNS, canonicalize_features
+from ml.data_prep import OUTCOME_COLUMNS, build_xy, canonicalize_features, load_dataset
 
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIR = ROOT / "artifacts" / "baseline"
 TARGETS = {"CAD", "LAD", "LCX", "RCA"}
+LOGGER = logging.getLogger(__name__)
+_SHAP_EXPLAINER_CACHE: dict[int, Any] = {}
+BACKGROUND_ROWS = 50
+TRAIN_TEST_SEED = 2026
+
+
+@lru_cache(maxsize=len(TARGETS))
+def load_training_background(target: str) -> pd.DataFrame:
+    """Return a deterministic sample from that target's saved-model training split."""
+    X, y = build_xy(load_dataset(), target.upper())
+    training, _, _, _ = train_test_split(
+        X, y, test_size=0.20, random_state=TRAIN_TEST_SEED, stratify=y
+    )
+    return training.sample(n=min(BACKGROUND_ROWS, len(training)), random_state=TRAIN_TEST_SEED).copy()
+
+
+def compute_shap_attributions(
+    model: Any,
+    x: np.ndarray,
+    background: np.ndarray,
+    feature_names: list[str],
+    *,
+    feature_values: Mapping[str, Any] | None = None,
+    feature_categories: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """Compute exact interventional Linear SHAP values in log-odds space.
+
+    ``feature_names`` maps transformed pipeline columns to source feature names;
+    duplicate names (one-hot columns) are summed back to their source feature.
+    """
+    import shap
+
+    row = np.asarray(x, dtype="float64").reshape(1, -1)
+    reference = np.asarray(background, dtype="float64")
+    if reference.ndim != 2 or reference.shape[1] != row.shape[1] or len(feature_names) != row.shape[1]:
+        raise ValueError("Transformed row, background and feature-name dimensions must match")
+    cache_key = id(model)
+    explainer = _SHAP_EXPLAINER_CACHE.get(cache_key)
+    if explainer is None:
+        explainer = shap.LinearExplainer(model, shap.maskers.Independent(reference))
+        _SHAP_EXPLAINER_CACHE[cache_key] = explainer
+
+    explanation = explainer(row)
+    shap_values = np.asarray(explanation.values, dtype="float64").reshape(-1)
+    base_value = float(np.asarray(explanation.base_values, dtype="float64").reshape(-1)[0])
+    grouped: dict[str, float] = {}
+    for feature, value in zip(feature_names, shap_values):
+        grouped[feature] = grouped.get(feature, 0.0) + float(value)
+    values = feature_values or {}
+    categories = feature_categories or {}
+    contributions = [
+        {
+            "feature": feature,
+            "category": categories.get(feature, ""),
+            "input_value": values.get(feature),
+            "shap_value": value,
+            "direction": "raises_risk" if value > 0 else "lowers_risk" if value < 0 else "neutral",
+        }
+        for feature, value in grouped.items()
+    ]
+    contributions.sort(key=lambda item: abs(item["shap_value"]), reverse=True)
+    return {"base_value": base_value, "feature_contributions": contributions}
+
+
+def exact_centered_attributions(
+    model: Any, x: np.ndarray, background: np.ndarray, feature_names: list[str]
+) -> tuple[float, dict[str, float]]:
+    """Closed-form exact linear attributions around a SHAP background mean."""
+    row = np.asarray(x, dtype="float64").reshape(-1)
+    reference = np.asarray(background, dtype="float64")
+    if reference.ndim != 2 or reference.shape[1] != row.size or len(feature_names) != row.size:
+        raise ValueError("Transformed row, background and feature-name dimensions must match")
+    coefficients = np.asarray(model.coef_, dtype="float64")[0]
+    mean = reference.mean(axis=0)
+    centered = (row - mean) * coefficients
+    exact: dict[str, float] = {}
+    for feature, value in zip(feature_names, centered):
+        exact[feature] = exact.get(feature, 0.0) + float(value)
+    base_value = float(np.asarray(model.intercept_).ravel()[0] + np.dot(mean, coefficients))
+    return base_value, exact
+
+
+def verify_attribution_consistency(
+    model: Any,
+    x: np.ndarray,
+    base_value: float,
+    shap_values: Mapping[str, float],
+    exact_values: Mapping[str, float],
+    *,
+    tolerance: float = 1e-6,
+) -> None:
+    """Assert SHAP additivity and agreement with centered exact coefficients."""
+    row = np.asarray(x, dtype="float64").reshape(1, -1)
+    score = float(np.asarray(model.decision_function(row)).reshape(-1)[0])
+    total = float(base_value + sum(shap_values.values()))
+    assert np.isclose(total, score, atol=tolerance, rtol=0), (
+        f"base value + SHAP values ({total}) does not match model log-odds ({score})"
+    )
+    assert set(shap_values) == set(exact_values), "SHAP and exact attribution feature sets differ"
+    for feature, shap_value in shap_values.items():
+        assert np.isclose(shap_value, exact_values[feature], atol=tolerance, rtol=0), (
+            f"SHAP and exact attributions diverge for {feature}: {shap_value} vs {exact_values[feature]}"
+        )
+
+
+def explain_shap_one(
+    target: str,
+    row: Mapping[str, Any] | pd.DataFrame,
+    *,
+    model: Pipeline,
+    background: pd.DataFrame,
+    feature_categories: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """Explain one row with cached LinearExplainer on the pipeline's logistic step."""
+    patient = _as_single_row(row)
+    expected = list(model.feature_names_in_)
+    missing = [name for name in expected if name not in patient.columns]
+    unexpected = [name for name in patient.columns if name not in expected]
+    if missing or unexpected:
+        raise ValueError(f"Feature mismatch; missing={missing}, unexpected={unexpected}")
+    patient = patient.loc[:, expected]
+    reference = background.loc[:, expected]
+    preprocessor = model.named_steps["preprocess"]
+    classifier = model.named_steps["classifier"]
+    transformed = preprocessor.transform(patient)
+    transformed_background = preprocessor.transform(reference)
+    if sparse.issparse(transformed):
+        transformed = transformed.toarray()
+    if sparse.issparse(transformed_background):
+        transformed_background = transformed_background.toarray()
+    transformed = np.asarray(transformed, dtype="float64")
+    transformed_background = np.asarray(transformed_background, dtype="float64")
+    origins = _feature_origins(preprocessor)
+    values = patient.iloc[0].to_dict()
+    shap_result = compute_shap_attributions(
+        classifier, transformed, transformed_background, origins,
+        feature_values=values, feature_categories=feature_categories,
+    )
+    exact_base, exact_values = exact_centered_attributions(
+        classifier, transformed, transformed_background, origins
+    )
+    shap_values = {item["feature"]: item["shap_value"] for item in shap_result["feature_contributions"]}
+    try:
+        verify_attribution_consistency(
+            classifier, transformed, shap_result["base_value"], shap_values, exact_values
+        )
+        if not np.isclose(shap_result["base_value"], exact_base, atol=1e-6, rtol=0):
+            raise AssertionError(f"SHAP base value {shap_result['base_value']} differs from exact base {exact_base}")
+    except AssertionError as exc:
+        LOGGER.warning("SHAP attribution consistency check failed for %s: %s", target.upper(), exc)
+
+    log_odds = float(classifier.decision_function(transformed)[0])
+    probability = float(model.predict_proba(patient)[0, 1])
+    return {
+        "target": target.upper(),
+        "positive_probability": probability,
+        "model_log_odds": log_odds,
+        "base_value": shap_result["base_value"],
+        "contribution_sum_log_odds": float(sum(shap_values.values())),
+        "explanation_method": "SHAP LinearExplainer interventional values in log-odds space",
+        "feature_contributions": [
+            {
+                "feature": item["feature"],
+                "category": item["category"],
+                "input_value": item["input_value"],
+                "log_odds_contribution": item["shap_value"],
+                "direction": item["direction"],
+            }
+            for item in shap_result["feature_contributions"]
+        ],
+    }
 
 
 def load_explanation_model(target: str, model_dir: str | Path = MODEL_DIR) -> Pipeline:

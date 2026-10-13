@@ -6,6 +6,7 @@ import {ANATOMY} from '../lib/anatomy';
 import {cssGradient, formatProb, riskColor} from '../lib/colorScale';
 import {buildSpecs, valueText} from '../lib/inputs';
 import {useCountUp} from '../components/useCountUp';
+import {PhysiologicalBreakdown} from '../components/PhysiologicalBreakdown';
 import type {ArteryConfig, Target, VesselPrediction} from '../types';
 
 const CONFIG = arteryConfig as ArteryConfig;
@@ -47,6 +48,7 @@ function Row({t, v}: {t: Target; v: VesselPrediction | null}) {
       </div>
       {selected && (
         <div className="detail">
+          <h3 className="detail-title">Assessment details</h3>
           <p>{ANATOMY[t]}</p>
           {items.length > 0 && (
             <ul className="why">
@@ -64,6 +66,7 @@ function Row({t, v}: {t: Target; v: VesselPrediction | null}) {
             </ul>
           )}
           {items.length > 0 && <p className="note">▲ raises, ▼ lowers the score. Typical values were not entered.</p>}
+          {t !== 'CAD' && <PhysiologicalBreakdown contributions={prediction?.group_contributions?.[t]} />}
         </div>
       )}
     </div>
