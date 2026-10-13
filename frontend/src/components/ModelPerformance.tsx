@@ -6,6 +6,10 @@ const figures = [
   ['holdout_calibration.png', 'Calibration'],
   ['holdout_confusion_matrices.png', 'Confusion matrices'],
   ['global_logistic_contributions.png', 'Global feature contributions'],
+  ['global_shap_cad.png', 'SHAP summary · CAD'],
+  ['global_shap_lad.png', 'SHAP summary · LAD'],
+  ['global_shap_lcx.png', 'SHAP summary · LCX'],
+  ['global_shap_rca.png', 'SHAP summary · RCA'],
 ];
 
 // Every number below comes from reports/metrics.json via the backend; nothing is hard-coded.

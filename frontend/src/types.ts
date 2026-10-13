@@ -27,9 +27,12 @@ export interface VesselPrediction {
 
 export interface ExplanationItem {
   feature: string;
+  category?: string;
   value: Primitive | null;
   log_odds: number;
   direction: 'raises_risk' | 'lowers_risk' | 'neutral' | string;
+  method?: string | null;
+  base_value?: number | null;
 }
 
 export interface Prediction {

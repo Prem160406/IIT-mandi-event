@@ -5,6 +5,7 @@ import {DISCLAIMER} from '../lib/anatomy';
 import {formatProb} from '../lib/colorScale';
 import {INPUT_NAMES, buildSpecs, valueText, type InputSpec} from '../lib/inputs';
 import {PageHead} from '../components/PageHead';
+import {PhysiologicalBreakdown} from '../components/PhysiologicalBreakdown';
 
 const ROWS = [
   ['CAD', 'Overall coronary artery disease', 'Overall result (not drawn on the heart)'],
@@ -53,6 +54,8 @@ export function ReportPage() {
   const factors = (prediction?.explanations.CAD ?? []).slice(0, 5);
   const vessels = prediction ? ROWS.slice(1).map(([k]) => [k, prediction.vessels[k]] as const) : [];
   const top = vessels.length ? vessels.reduce((a, b) => (b[1].probability > a[1].probability ? b : a)) : null;
+  const attributionMethod = prediction?.explanations.CAD?.[0]?.method;
+  const breakdownSection = (factors.length > 0 ? 5 : 4) + (more.length > 0 ? 1 : 0);
 
   const exportPdf = () => { setAsk(false); window.setTimeout(() => window.print(), 60); };
   const exportDoc = () => {
@@ -110,6 +113,7 @@ export function ReportPage() {
             {factors.length > 0 && (
               <>
                 <h2>{more.length > 0 ? '5' : '4'}. Main factors for overall CAD</h2>
+                <p className="note">Attribution method: {attributionMethod === 'shap.LinearExplainer' ? 'SHAP (LinearExplainer)' : attributionMethod === 'exact_linear_decomposition' ? 'exact linear decomposition (fallback)' : '–'}</p>
                 <table className="rp-pairs"><tbody>
                   {factors.map((f) => {
                     const s = specs.find((x) => x.name === f.feature);
@@ -118,6 +122,8 @@ export function ReportPage() {
                 </tbody></table>
               </>
             )}
+            <h2>{breakdownSection}. Physiological group breakdown for overall CAD</h2>
+            <PhysiologicalBreakdown contributions={prediction.group_contributions?.CAD} />
           </>
         )}
         <p className="disc"><b>Notice.</b> {DISCLAIMER}</p>

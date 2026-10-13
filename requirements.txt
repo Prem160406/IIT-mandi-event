@@ -17,6 +17,7 @@ python-dateutil==2.9.0.post0
 pytz==2026.5
 PyYAML==6.0.3
 scikit-learn==1.9.1
+shap==0.53.0
 scipy==1.18.1
 six==1.17.0
 threadpoolctl==3.7.0

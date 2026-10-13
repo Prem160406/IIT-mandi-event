@@ -4,7 +4,7 @@ Multimodal AI Hackathon 2026 | Team of 4
 
 This file is our single source of truth. It covers what the problem statement asks for, how we will build it, which tool is used for what, and who does which part. Keep it updated as we go.
 
-> **Implementation status (2026-10-10):** This README describes the planned four-person product, not a claim that the full app is already implemented. M1 has an internal four-target logistic-regression baseline with leakage-safe training/evaluation and exact additive log-odds explanations; the helper is not SHAP. An M2 FastAPI backend implementation is staged on a mainline-based integration branch, but its runtime behavior and API contract still need team verification. The 3D viewer and dashboard remain integration work. See [`ROADMAP.md`](ROADMAP.md) and [`reports/m1_handoff.md`](reports/m1_handoff.md). This is not a clinically validated system.
+> **Implementation status (2026-10-13):** The repository contains four leakage-safe logistic-regression models, a FastAPI prediction service, a 3D heart viewer, and a dashboard with local SHAP explanations and physiological group totals. See [`ROADMAP.md`](ROADMAP.md) and [`reports/m1_handoff.md`](reports/m1_handoff.md) for project context. This is not a clinically validated system.
 
 ---
 
@@ -19,7 +19,7 @@ This file is our single source of truth. It covers what the problem statement as
 7. [Tools and technologies (every tool explained)](#7-tools-and-technologies)
 8. [Repository structure and file ownership](#8-repository-structure-and-file-ownership)
 9. [ML pipeline in detail](#9-ml-pipeline-in-detail)
-10. [Explainability (SHAP and LIME)](#10-explainability-shap-and-lime)
+10. [Explainability (SHAP)](#10-explainability-shap)
 11. [Backend API](#11-backend-api)
 12. [3D pipeline](#12-3d-pipeline)
 13. [Dashboard and frontend](#13-dashboard-and-frontend)
@@ -96,7 +96,7 @@ This is every requirement in the PDF, broken down with how we meet it and who ow
 | ID | Requirement | How we meet it | Owner |
 |---|---|---|---|
 | R9 | Show predicted overall CAD status and vessel probabilities next to the 3D canvas | Split-screen layout: 3D on one side, result cards on the other | M4 |
-| R10 | Interpretable breakdown of why (SHAP or LIME) | SHAP per prediction, shown as a bar chart for each target | M1 (compute) + M4 (display) |
+| R10 | Interpretable breakdown of why | SHAP per prediction, shown as a bar chart for each target | M1 (compute) + M4 (display) |
 | R11 | Show physiological measurements with their contribution to the prediction | Table of the patient's values, normal range, flag, and contribution bar | M4 |
 
 ### 3.4 Other requirements
@@ -120,7 +120,7 @@ This is every requirement in the PDF, broken down with how we meet it and who ow
 |---|---|---|
 | Working software prototype | Web app with 3D viewer connected to the ML backend | All |
 | Trained prediction pipeline | Clean code plus saved model weights for CAD and the 3 vessels | M1 |
-| Clinical explanation dashboard | Prediction metrics, SHAP/LIME, patient breakdowns | M4 (+ M1 data) |
+| Clinical explanation dashboard | Prediction metrics, SHAP and physiological group breakdowns | M4 (+ M1 data) |
 | Project documentation (max 6 pages) | Preprocessing, model architecture, 3D pipeline, usage, evaluation results | M4 compiles, everyone writes their part |
 | Demo video (3 to 10 minutes, on YouTube) | Shows the working system, feature input workflow, 3D interactions and technical implementation | M4 records and edits, everyone appears or narrates their part |
 
@@ -250,7 +250,6 @@ For each tool: what it is, why we use it, where it is used, who owns it, and thi
 | Random Forest (in scikit-learn) | Another comparison model | `ml/train.py` | Fine as a baseline. |
 | imbalanced-learn (optional) | SMOTE or other resampling | `ml/train.py` | Only apply inside the CV pipeline (imblearn Pipeline). Class weights are simpler and usually enough. |
 | SHAP | Per-patient and global feature attribution | `ml/explain.py` | Output shape differs between SHAP versions (list of arrays vs one array). Write one helper and test it. |
-| LIME (optional) | Second opinion on explanations | `ml/explain.py` | Slower, and results vary between runs. Use only as a cross-check. |
 | joblib | Save and load trained pipelines | `models/` | Load with the same scikit-learn and XGBoost versions used for training. |
 | matplotlib and seaborn | Plots for the report: ROC, calibration, confusion matrix, SHAP summary | `reports/figures/` | Save at a good resolution since docs are limited to 6 pages. |
 | Jupyter Notebook | EDA and experiments | `notebooks/` | Final training must be a plain script, not only a notebook, so it is reproducible. |
@@ -433,30 +432,15 @@ Fill one table for CV (mean and std) and one for the held-out test set.
 
 ---
 
-## 10. Explainability (SHAP and LIME)
+## 10. Explainability (SHAP)
 
-### 10.1 What we show
+The live dashboard uses the `shap` library's `shap.LinearExplainer` on each saved logistic regression model, after the fitted preprocessing pipeline transforms the input. Attributions are in log-odds space. Transformed one-hot columns are summed back to their original feature, then grouped into the four physiological categories.
 
-| View | Content |
-|---|---|
-| Per patient, per target | Top contributing features (say top 8): feature name, patient value, SHAP value, direction (raises or lowers risk) |
-| Global importance | Mean absolute SHAP per feature, for each target (bar chart, saved as a figure for the report) |
-| Grouped contribution | Sum of SHAP values per category (demographic, symptoms, ECG, lab, echo) so users see which group drove the risk |
-| Plain-language line | A generated sentence like "Risk is raised mainly by age, T inversion and low EF-TTE" |
-| Measurement table | Value, normal range, flag (low, normal, high), and its contribution bar |
+For a linear model with interventional feature assumptions, `LinearExplainer` computes closed-form Shapley values. It does not rely on Monte Carlo sampling, so these attributions have no sampling noise. A fixed, representative sample from each target's training split supplies the background value. The backend also independently computes the exact centered coefficient terms and checks that they match SHAP, and that the base value plus all attributions equals the model's log-odds. If a runtime check fails, it logs a warning; if SHAP cannot run, the API falls back to the existing exact linear decomposition.
 
-### 10.2 How to compute (M1 writes the helper, M2 serves it)
+`ml/explain.py` contains the SHAP and exact attribution helpers; `backend/app/explain_service.py` serves per-target attributions and calculates group totals; `frontend/src/components/PhysiologicalBreakdown.tsx` renders group totals in the assessment and report. `backend/tests/test_explainability.py` checks all three demo cases, additivity, group totals and fallback behavior. To regenerate the per-target SHAP bar figures in `frontend/public/figures/`, run `python scripts/generate_shap_figures.py`. Run `python scripts/explain_samples.py` to print top-feature SHAP and exact comparisons for the three demos.
 
-- Tree models (XGBoost, Random Forest): `shap.TreeExplainer`. Fast enough for live use.
-- Logistic Regression: `shap.LinearExplainer` (or the general `shap.Explainer`).
-- Explain the underlying fitted model on the transformed features, then map feature names back to readable names. If the model is wrapped in `CalibratedClassifierCV`, explain the base estimator. The SHAP values are on the model's raw output scale (log-odds for many models), not exactly the calibrated probability, so label the chart as "contribution to the model score" and say that in the docs.
-- One-hot columns: sum SHAP values of the pieces back to the original feature for display.
-- Write one function `explain_one(target, row) -> list[dict]` and test that it works for all four targets with the SHAP version pinned.
-- Save SHAP background data (a small sample of the training set) so the backend can recreate the explainer.
-
-### 10.3 LIME (optional)
-
-Use `lime.lime_tabular.LimeTabularExplainer` as a cross-check for a couple of patients in the docs. It is slower and random, so do not use it for the live dashboard.
+We use SHAP because these models are linear and its dedicated explainer yields exact attributions directly. LIME's sampling-based local approximations are unnecessary for this model class. Contributions describe the model score, not causal effects or medical mechanisms, and do not represent percentage-point changes in probability.
 
 ---
 
@@ -777,7 +761,7 @@ Rough load: M1 and M3 are heavy early, M2 is steady and heavy at the integration
 | Day 2 to 3 | Write `explain.py`: SHAP for each model, mapping back to readable feature names, group contributions, generate the global SHAP figures. Hand the helper to M2. |
 | Day 3 to 4 | Produce all figures for the report (ROC, calibration, confusion matrices, SHAP summary). Fill the metrics tables. Write `train_all` scripts so everything reruns from scratch. |
 | Day 4 to 5 | Support M2 with model loading problems. Run the consistency check (CAD vs vessels). Write the ML sections of the report (dataset and preprocessing, model architecture, evaluation). |
-| Later | Optional: LIME cross-check, smaller feature set comparison, ablation. |
+| Later | Optional: smaller feature set comparison, ablation. |
 
 **Hands over:**
 - To M2: model files, `metadata.json`, `explain_one` function, `features.yaml`, `targets.yaml`.
@@ -1098,7 +1082,6 @@ Only after everything in section 21 is solid.
 - "What-if" sliders: change one feature (for example LDL) and watch the risk change live.
 - Compare two patients side by side.
 - Export a one-page PDF report of the result with the disclaimer.
-- LIME cross-check shown in the About tab.
 - Ablation: performance with feature groups removed (for example without ECG).
 - Docker Compose for one-command start.
 - Hosted demo link.

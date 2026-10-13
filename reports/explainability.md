@@ -1,24 +1,35 @@
-# Local explanation contract
+# Local explainability contract
 
-`ml.explain.explain_one(target, row, model=None, top_k=None)` provides a faithful per-record explanation for one of the saved **raw logistic-regression** models. The calibrated experiment and random-forest candidate are not supported by this helper.
+The four saved app models are raw logistic-regression pipelines (CAD, LAD, LCX and RCA). Each pipeline uses the same 55 input fields, with numeric imputation and standardization, categorical imputation and one-hot encoding, followed by the fitted logistic regression. Outcome columns are excluded before either prediction or explanation.
 
-```python
-from ml.data_prep import load_dataset
-from ml.explain import explain_one
+## SHAP attributions
 
-patient_row = load_dataset().iloc[[0]]
-result = explain_one("CAD", patient_row, top_k=10)
+`ml.explain.explain_shap_one(target, row, model, background, feature_categories)` explains the final logistic regression with `shap.LinearExplainer`. It first applies the model's saved preprocessing pipeline, then explains the logistic regression in its raw decision-function output, which is log-odds. Each target uses up to 50 deterministic rows from that model's training split as its background. The explainer is cached by the fitted classifier so requests reuse it.
+
+With an interventional background and a linear model, `LinearExplainer` calculates the closed-form Shapley values. There is no Monte Carlo approximation or sampling noise. The transformed model columns are mapped to their source input feature; the pieces from one-hot columns are summed. Every returned feature includes its name, physiological category, supplied input value, SHAP value and direction, sorted by absolute attribution.
+
+The background defines the reference score. Its expected model log-odds is the base value, and the centered feature values sum to the current model log-odds:
+
+```text
+base value + sum(SHAP values) = model log-odds
 ```
 
-The output contains the raw model probability and an additive list of feature contributions in log-odds space. Numeric scaling and one-hot encoding are part of the saved fitted pipeline; encoded contributions are summed back to their original input field. Positive contributions push toward the target's positive class, and negative contributions push away. The full-precision contributions sum to the model log-odds minus its intercept, up to floating-point rounding.
+The backend calculates group totals by summing these same original-feature SHAP values. It returns all 55 input-feature contributions so clients can reproduce each group total exactly; the interface chooses a shorter top-five view where appropriate.
 
-This is an exact decomposition of the logistic model calculation, not SHAP, not a causal attribution and not a medical mechanism. The input row is checked against the model's exact feature schema; known outcome columns are dropped before prediction, and other missing/extra feature names raise an error. For an app response, M2 should return the same raw logistic model probability that this explanation describes. If the app switches to a calibrated or tree model, it must use an explanation method compatible with that model and keep the displayed probability and explanation aligned.
+## Exact cross-check and fallback
 
-## Handoff fields
+`explain_one(target, row, model=None, top_k=None)` remains the existing exact additive decomposition around a zero transformed baseline: the intercept plus each transformed input times its coefficient equals the model log-odds. For the SHAP background, `exact_centered_attributions()` computes the corresponding exact terms around the background mean. `verify_attribution_consistency()` asserts that the SHAP sum reaches the decision-function score and that each original-feature SHAP value agrees with this independently computed centered coefficient term within `1e-6`. At runtime, a failed consistency check logs a warning instead of interrupting prediction.
 
-- `target`, `positive_probability`
-- `model_log_odds`, `intercept_log_odds`, `contribution_sum_log_odds`
-- `feature_contributions[]`: `feature`, `input_value`, `log_odds_contribution`, `direction`
-- `explanation_method`, `interpretation_warning`
+If importing or running SHAP fails, the API uses `exact_linear_decomposition` and sets its base value to the model intercept. The `method` and `base_value` fields are optional additions to each explanation item; the existing prediction and explanation array structure stays intact. The frontend labels SHAP or fallback attribution method in the report.
 
-The frontend should label contributions as **model score contributions**, not risk factors or causes, and should not convert them into a percentage-point probability change without an explicit method. The contribution values are additive in log-odds; probability effects are nonlinear and depend on all inputs together.
+We use SHAP because the models are linear and `LinearExplainer` computes exact attributions for them. LIME's sampling-based approximation is unnecessary here, so LIME is not added. These are model score contributions, not causal effects, medical mechanisms or percentage-point changes in probability.
+
+## Reproduction
+
+```powershell
+python scripts/explain_samples.py
+python scripts/generate_shap_figures.py
+pytest backend/tests
+```
+
+`scripts/explain_samples.py` prints the five largest SHAP contributions beside the exact centered coefficient contributions for the low-risk, single-vessel LAD and multi-vessel examples. `scripts/generate_shap_figures.py` writes one global SHAP bar summary per target into `frontend/public/figures/` without overwriting the existing figures.

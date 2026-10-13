@@ -16,6 +16,7 @@ export function HeartScene() {
   const labels = useStore((s) => s.settings.labels);
   const colorBlind = useStore((s) => s.settings.colorBlind);
   const select = useStore((s) => s.select);
+  const hover = useStore((s) => s.hover);
   const [anchors, setAnchors] = useState<Record<string, THREE.Vector3>>({});
   const [missing, setMissing] = useState<string[]>([]);
 
@@ -27,7 +28,7 @@ export function HeartScene() {
         dpr={[1, 1.5]}
         camera={{fov: 28, near: 0.1, far: 100, position: HOME.position.toArray()}}
         gl={{antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05}}
-        onPointerMissed={() => select(null)}
+        onPointerMissed={() => { select(null); hover(null); }}
         aria-label="Interactive 3D heart. Drag to rotate, scroll to zoom, click an artery to select it."
       >
         <hemisphereLight args={[0xffffff, 0xb08a85, 0.45]} />

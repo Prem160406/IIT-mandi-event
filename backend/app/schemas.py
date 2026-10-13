@@ -32,9 +32,12 @@ class VesselPrediction(BaseModel):
 
 class ExplanationItem(BaseModel):
     feature: str
+    category: str | None = None
     value: Any = None
     log_odds: float
     direction: str
+    method: str | None = None
+    base_value: float | None = None
 
 
 class PredictionResponse(BaseModel):
