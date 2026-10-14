@@ -16,6 +16,9 @@ export interface InputSpec {
 }
 
 const rwma: Choice[] = [0, 1, 2, 3, 4].map((n) => ({value: n, text: String(n)}));
+const CARDIAC_FUNCTION_FIELDS = new Set([
+  'CHF', 'Edema', 'Systolic Murmur', 'Diastolic Murmur', 'Dyspnea', 'BBB', 'EF-TTE', 'VHD',
+]);
 
 // The 12 key measurements (+ BMI, autofilled). Units only where the data proves them
 // (BMI = Weight / (Length/100)^2 for all 303 rows).
@@ -43,13 +46,24 @@ export function buildSpecs(features: FeatureDef[]): InputSpec[] {
   for (const f of features) {
     if (INPUT_NAMES.has(f.name) || f.constant_in_source) continue;
     const g = NAMES[f.name];
-    const base = {name: f.name, label: g ? g[0] : f.name, full: g ? g[1] : undefined, group: GROUP_TITLE[g ? g[2] : DATA_GROUP[f.group] ?? 'History']};
+    const base = {
+      name: f.name,
+      label: g ? g[0] : f.name,
+      full: g ? g[1] : undefined,
+      unit: f.name === 'EF-TTE' ? '%' : undefined,
+      group: CARDIAC_FUNCTION_FIELDS.has(f.name)
+        ? 'Cardiac function & valves'
+        : GROUP_TITLE[g ? g[2] : DATA_GROUP[f.group] ?? 'History'],
+    };
     const cats = f.categories ?? [];
     if (f.type === 'binary') {
       const letters = cats.includes('Y');
       extra.push({...base, kind: 'yesno', yes: letters ? 'Y' : 1, no: letters ? 'N' : 0});
     } else if (f.type === 'categorical' || f.type === 'ordinal') {
-      extra.push({...base, kind: 'choice', choices: cats.map((c) => ({value: c, text: c === 'N' ? 'None' : String(c)}))});
+      extra.push({...base, kind: 'choice', choices: cats.map((c) => ({
+        value: c,
+        text: c === 'N' ? (f.name === 'BBB' ? 'Normal' : 'None') : String(c),
+      }))});
     } else {
       extra.push({...base, kind: 'number'});
     }
