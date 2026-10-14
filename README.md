@@ -4,7 +4,7 @@
 
 ---
 
-## 🫀 Overview
+## Overview
 
 **Eukardia** is a full-stack, multimodal clinical decision-support prototype that predicts coronary artery disease (CAD) and vessel-specific stenosis (LAD, LCX, RCA) from patient demographic, clinical, ECG, laboratory, and echocardiographic features.
 
@@ -16,7 +16,7 @@ Key capabilities include:
 
 ---
 
-## 📋 Prerequisites & Dependencies
+## Prerequisites & Dependencies
 
 Before setting up the project, make sure the following are installed on your system:
 
@@ -28,7 +28,7 @@ Before setting up the project, make sure the following are installed on your sys
 
 ---
 
-## 🚀 Setup Instructions
+## Setup Instructions
 
 ### 1. Clone the Repository
 ```bash
@@ -65,7 +65,7 @@ cd ..
 
 ---
 
-## 💻 Instructions for Running the Project
+## Running the Project
 
 You can run both services together using the provided launcher scripts or run them manually in separate terminal windows.
 
@@ -101,7 +101,7 @@ npm run dev
 
 ---
 
-## 🧪 Running Tests & Quality Checks
+## Testing & Verification
 
 Run the complete test suite to verify backend contracts, leakage safety, artery consistency, and frontend builds:
 
@@ -123,7 +123,7 @@ npm run build
 
 ---
 
-## 📡 API Overview
+## API Overview
 
 The FastAPI service exposes the following endpoints:
 
@@ -138,7 +138,7 @@ The FastAPI service exposes the following endpoints:
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 IIT-mandi-event/
@@ -170,7 +170,7 @@ IIT-mandi-event/
 
 ---
 
-## 🧠 Model & Explainability Summary
+## Model & Explainability Summary
 
 - **Dataset:** Extension of Z-Alizadeh Sani dataset (UCI ID 411) consisting of 303 patient records across demographic, examination, ECG, laboratory, and echocardiographic features.
 - **Leakage Prevention:** `Cath`, `CAD`, `LAD`, `LCX`, and `RCA` are strictly excluded from all training feature matrices.
@@ -179,7 +179,7 @@ IIT-mandi-event/
 
 ---
 
-## 📄 License & Attribution
+## License & Attribution
 
 - **License:** Released under the [MIT License](LICENSE).
 - **Dataset Attribution:** Extension of Z-Alizadeh Sani Dataset, UCI Machine Learning Repository.
