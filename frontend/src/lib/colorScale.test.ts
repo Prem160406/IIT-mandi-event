@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {NEUTRAL, formatProb, hslToHex, riskColor} from './colorScale';
+import {combinePerfusionRisk, NEUTRAL, PERFUSION_COLOR_STOPS, perfusionColorAt, formatProb, hslToHex, riskColor} from './colorScale';
 
 describe('riskColor', () => {
   it('is neutral grey before any prediction', () => {
@@ -29,5 +29,20 @@ describe('helpers', () => {
     expect(formatProb(0.9999)).toBe('>99%');
     expect(formatProb(0.0001)).toBe('<1%');
     expect(formatProb(0.74)).toBe('74%');
+  });
+});
+
+describe('perfusion map helpers', () => {
+  it('combines live artery probabilities using per-vertex supply weights', () => {
+    expect(combinePerfusionRisk([0.8, 0.1, 0.1], [1, 0.5, 0])).toBeCloseTo(0.85, 12);
+    expect(combinePerfusionRisk([0, 1, 0], [1, 0.5, 0])).toBe(0.5);
+  });
+
+  it('uses the configured ramp stops and clamps probabilities at its ends', () => {
+    for (const stop of PERFUSION_COLOR_STOPS) {
+      expect(`#${perfusionColorAt(stop.at).getHexString()}`).toBe(stop.hex.toLowerCase());
+    }
+    expect(perfusionColorAt(-1).getHexString()).toBe(perfusionColorAt(0).getHexString());
+    expect(perfusionColorAt(2).getHexString()).toBe(perfusionColorAt(1).getHexString());
   });
 });

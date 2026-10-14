@@ -75,9 +75,9 @@ export const useStore = create<Store>((set, get) => ({
     // The shown result belongs to the old inputs. Drop it (the heart returns to its
     // neutral state) and ignore any request still in flight for those old inputs.
     requestId++;
+    clearTimeout(liveTimer);
     set({input, prediction: null, status: 'idle', error: null});
     if (get().settings.live && Object.keys(input).length > 0) {
-      clearTimeout(liveTimer);
       liveTimer = setTimeout(() => void get().predict(), 300); // debounce (roadmap 13.4)
     }
   },
