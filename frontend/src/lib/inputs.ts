@@ -10,6 +10,8 @@ export interface InputSpec {
   kind: Kind;
   unit?: string;
   group: string;
+  min?: number;
+  max?: number;
   yes?: Primitive;
   no?: Primitive;
   choices?: Choice[];
@@ -20,18 +22,17 @@ const CARDIAC_FUNCTION_FIELDS = new Set([
   'CHF', 'Edema', 'Systolic Murmur', 'Diastolic Murmur', 'Dyspnea', 'BBB', 'EF-TTE', 'VHD',
 ]);
 
-// The 12 key measurements (+ BMI, autofilled). Units only where the data proves them
-// (BMI = Weight / (Length/100)^2 for all 303 rows).
+// The 12 key measurements (+ BMI, autofilled).
 export const INPUTS: InputSpec[] = [
-  {name: 'Age', label: 'Age', full: 'Age in years', kind: 'number', unit: 'yrs', group: 'Patient'},
+  {name: 'Age', label: 'Age', full: 'Age in years', kind: 'number', unit: 'yrs', min: 18, max: 110, group: 'Patient'},
   {name: 'Sex', label: 'Sex', kind: 'choice', choices: [{value: 'Female', text: 'Female'}, {value: 'Male', text: 'Male'}], group: 'Patient'},
-  {name: 'Length', label: 'Height', kind: 'number', unit: 'cm', group: 'Patient'},
-  {name: 'Weight', label: 'Weight', kind: 'number', unit: 'kg', group: 'Patient'},
-  {name: 'BMI', label: 'BMI', full: 'Body mass index', kind: 'bmi', group: 'Patient'},
-  {name: 'BP', label: 'BP', full: 'Blood pressure', kind: 'number', group: 'Vitals and lipids'},
-  {name: 'PR', label: 'PR', full: 'Pulse rate', kind: 'number', group: 'Vitals and lipids'},
-  {name: 'LDL', label: 'LDL', full: 'Low-density lipoprotein cholesterol', kind: 'number', group: 'Vitals and lipids'},
-  {name: 'HDL', label: 'HDL', full: 'High-density lipoprotein cholesterol', kind: 'number', group: 'Vitals and lipids'},
+  {name: 'Length', label: 'Height', kind: 'number', unit: 'cm', min: 100, max: 240, group: 'Patient'},
+  {name: 'Weight', label: 'Weight', kind: 'number', unit: 'kg', min: 30, max: 250, group: 'Patient'},
+  {name: 'BMI', label: 'BMI', full: 'Body mass index', kind: 'bmi', min: 10, max: 70, group: 'Patient'},
+  {name: 'BP', label: 'BP', full: 'Blood pressure', kind: 'number', unit: 'mmHg', min: 60, max: 240, group: 'Vitals and lipids'},
+  {name: 'PR', label: 'PR', full: 'Pulse rate', kind: 'number', unit: 'bpm', min: 40, max: 200, group: 'Vitals and lipids'},
+  {name: 'LDL', label: 'LDL', full: 'Low-density lipoprotein cholesterol', kind: 'number', unit: 'mg/dL', min: 10, max: 400, group: 'Vitals and lipids'},
+  {name: 'HDL', label: 'HDL', full: 'High-density lipoprotein cholesterol', kind: 'number', unit: 'mg/dL', min: 10, max: 150, group: 'Vitals and lipids'},
   {name: 'St Elevation', label: 'ST elevation', full: 'ST-segment elevation', kind: 'yesno', yes: 1, no: 0, group: 'ECG and echo'},
   {name: 'Tinversion', label: 'T inversion', full: 'T-wave inversion', kind: 'yesno', yes: 1, no: 0, group: 'ECG and echo'},
   {name: 'LVH', label: 'LVH', full: 'Left ventricular hypertrophy', kind: 'yesno', yes: 'Y', no: 'N', group: 'ECG and echo'},
@@ -50,7 +51,9 @@ export function buildSpecs(features: FeatureDef[]): InputSpec[] {
       name: f.name,
       label: g ? g[0] : f.name,
       full: g ? g[1] : undefined,
-      unit: f.name === 'EF-TTE' ? '%' : undefined,
+      unit: f.unit ?? (f.name === 'EF-TTE' ? '%' : undefined),
+      min: f.input_range ? f.input_range[0] : 0,
+      max: f.input_range ? f.input_range[1] : undefined,
       group: CARDIAC_FUNCTION_FIELDS.has(f.name)
         ? 'Cardiac function & valves'
         : GROUP_TITLE[g ? g[2] : DATA_GROUP[f.group] ?? 'History'],

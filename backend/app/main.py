@@ -73,7 +73,7 @@ def _sample_features() -> list[dict[str, Any]]:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configs = load_configs()
-    predictor = Predictor.from_artifacts(configs["arteries"])
+    predictor = Predictor.from_artifacts(configs["arteries"], features_config=configs["features"])
     app.state.container = AppContainer(
         configs=configs,
         predictor=predictor,

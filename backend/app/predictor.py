@@ -32,7 +32,12 @@ class Predictor:
     reuse the in-memory pipelines; no artifact is opened during inference.
     """
 
-    def __init__(self, models: Mapping[str, Any], arteries_config: Mapping[str, Any]):
+    def __init__(
+        self,
+        models: Mapping[str, Any],
+        arteries_config: Mapping[str, Any],
+        features_config: Mapping[str, Any] | None = None,
+    ):
         self.models = dict(models)
         self.arteries = list(arteries_config["arteries"])
         risk_levels = arteries_config["riskLevels"]
@@ -50,11 +55,20 @@ class Predictor:
                 raise ValueError(f"Model {target} does not use the shared feature ordering")
         self.feature_names = expected
 
+        ranges: dict[str, tuple[float, float]] = {}
+        if features_config:
+            for item in features_config.get("features", []):
+                ir = item.get("input_range")
+                if ir and len(ir) == 2 and ir[0] is not None and ir[1] is not None:
+                    ranges[str(item["name"])] = (float(ir[0]), float(ir[1]))
+        self.input_ranges = ranges
+
     @classmethod
     def from_artifacts(
         cls,
         arteries_config: Mapping[str, Any],
         model_dir: str | Path = ROOT / "artifacts" / "baseline",
+        features_config: Mapping[str, Any] | None = None,
     ) -> "Predictor":
         """Load each raw pipeline exactly once for the application lifetime."""
         directory = Path(model_dir)
@@ -64,7 +78,7 @@ class Predictor:
             if not path.is_file():
                 raise FileNotFoundError(f"Model artifact not found: {path}")
             models[target] = joblib.load(path)
-        return cls(models, arteries_config)
+        return cls(models, arteries_config, features_config=features_config)
 
     def prepare_input(self, features: Mapping[str, Any]) -> PreparedInput:
         """Build the exact training column set after removing outcomes.
@@ -84,6 +98,13 @@ class Predictor:
         row: dict[str, Any] = {}
         for name in self.feature_names:
             value = raw.iloc[0][name] if name in raw.columns else np.nan
+            if value is not None and not pd.isna(value) and hasattr(self, "input_ranges") and name in self.input_ranges:
+                try:
+                    num_val = float(value)
+                    min_val, max_val = self.input_ranges[name]
+                    value = max(min_val, min(max_val, num_val))
+                except (ValueError, TypeError):
+                    pass
             row[name] = np.nan if value is None else value
         return PreparedInput(pd.DataFrame([row], columns=self.feature_names), missing_fields)
 
@@ -102,6 +123,13 @@ class Predictor:
             probabilities[target] = float(np.clip(probability, 0.0, 1.0))
 
         cad_probability = probabilities["CAD"]
+        # Enforce clinical consistency: CAD is defined as stenosis in at least one vessel.
+        # Overall CAD probability cannot be lower than the stenosis probability of any single coronary branch.
+        vessel_probs = [probabilities[str(a["target"])] for a in self.arteries if str(a["target"]) in probabilities]
+        if vessel_probs:
+            cad_probability = max(cad_probability, max(vessel_probs))
+        cad_probability = float(np.clip(cad_probability, 0.0, 1.0))
+
         result: dict[str, Any] = {
             "model_version": MODEL_VERSION,
             "missing_fields": prepared.missing_fields,

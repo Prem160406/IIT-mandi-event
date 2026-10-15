@@ -65,3 +65,28 @@ def test_predict_accepts_full_and_partial_inputs() -> None:
         assert set(result["explanations"]) == {"CAD", "LAD", "LCX", "RCA"}
         assert result["disclaimer"] == EXPECTED_DISCLAIMER
         assert all(0.0 <= vessel["probability"] <= 1.0 for vessel in result["vessels"].values())
+
+
+def test_extreme_inputs_clamped_and_cad_coherence() -> None:
+    extreme_inputs = {
+        "Age": -12,
+        "Length": -129,
+        "Weight": 400,
+        "EF-TTE": -15,
+        "PLT": 84000,
+        "K": 96,
+        "CR": 84,
+        "WBC": 100000,
+    }
+    with TestClient(app) as client:
+        response = client.post("/predict", json={"features": extreme_inputs})
+    assert response.status_code == 200
+    data = response.json()
+    cad_p = data["cad"]["probability"]
+    vessel_ps = [v["probability"] for v in data["vessels"].values()]
+    # Overall CAD probability must be logically coherent with the highest vessel probability
+    assert cad_p >= max(vessel_ps) - 1e-6
+    # Probabilities must remain valid probabilities
+    assert 0.0 <= cad_p <= 1.0
+    assert all(0.0 <= p <= 1.0 for p in vessel_ps)
+

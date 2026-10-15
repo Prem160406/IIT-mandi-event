@@ -28,13 +28,52 @@ function Control({s}: {s: InputSpec}) {
     );
   }
   const num = typeof v === 'number' ? v : undefined;
-  const bump = (d: number) => { if (num !== undefined) setField(s.name, Math.max(0, Math.round((num + d) * 100) / 100)); };
+  const minVal = s.min ?? 0;
+  const maxVal = s.max ?? Infinity;
+  const bump = (d: number) => {
+    if (num !== undefined) {
+      const next = Math.max(minVal, Math.min(maxVal, Math.round((num + d) * 100) / 100));
+      setField(s.name, next);
+    }
+  };
+
+  const handleInput = (valStr: string) => {
+    if (valStr === '') {
+      setField(s.name, undefined);
+      return;
+    }
+    const cleaned = valStr.replace(/[^0-9.]/g, '');
+    if (cleaned === '') {
+      setField(s.name, undefined);
+      return;
+    }
+    let n = Number(cleaned);
+    if (!isNaN(n)) {
+      if (s.max !== undefined && n > s.max) n = s.max;
+      setField(s.name, n);
+    }
+  };
+
   return (
     <div className="num">
-      <button type="button" aria-label={`Decrease ${s.label}`} disabled={num === undefined} onClick={() => bump(-1)}>−</button>
-      <input type="number" inputMode="decimal" step="any" min={0} placeholder="–" aria-label={s.label} value={v === undefined ? '' : String(v)}
-        onChange={(e) => setField(s.name, e.target.value === '' ? undefined : Number(e.target.value))} />
-      <button type="button" aria-label={`Increase ${s.label}`} disabled={num === undefined} onClick={() => bump(1)}>+</button>
+      <button type="button" aria-label={`Decrease ${s.label}`} disabled={num === undefined || num <= minVal} onClick={() => bump(-1)}>−</button>
+      <input
+        type="number"
+        inputMode="decimal"
+        step="any"
+        min={minVal}
+        max={s.max}
+        placeholder="–"
+        aria-label={s.label}
+        value={v === undefined ? '' : String(v)}
+        onKeyDown={(e) => {
+          if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+            e.preventDefault();
+          }
+        }}
+        onChange={(e) => handleInput(e.target.value)}
+      />
+      <button type="button" aria-label={`Increase ${s.label}`} disabled={num === undefined || (s.max !== undefined && num >= s.max)} onClick={() => bump(1)}>+</button>
       {s.unit && <em>{s.unit}</em>}
     </div>
   );
