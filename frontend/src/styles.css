@@ -83,7 +83,9 @@ background:radial-gradient(circle at 24% 50%,rgba(255,255,255,.16),transparent 4
 .legend .bar{width:100px;height:6px;border-radius:3px;background:var(--grad)}.legend .muted{color:var(--s-muted)}
 .hint{position:absolute;right:10px;bottom:10px;z-index:3;font-size:11px;color:var(--s-muted);background:var(--s-panel);border:1px solid var(--s-line);padding:3px 8px;border-radius:6px}
 .stage .warn{position:absolute;left:10px;right:10px;top:50px;z-index:4;background:var(--s-panel)}
-.view-tools{right:10px;left:auto;justify-content:flex-end}
+.view-tools{right:10px;left:auto;justify-content:flex-end;width:max-content}
+.view-tools .reset-view{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;font-size:11px;white-space:nowrap}
+.view-tools .reset-view svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .perfusion-legend{position:absolute;left:10px;bottom:10px;z-index:3;max-width:min(620px,calc(100% - 20px));padding:8px 10px;border:1px solid var(--s-line);border-radius:8px;background:var(--s-panel);color:var(--s-ink);font-size:11px}
 .perfusion-legend>div:first-child{display:flex;align-items:center;gap:7px;font-weight:650}.perfusion-legend small{display:block;color:var(--s-muted);margin:3px 0}
 .perfusion-gradient{width:112px;height:8px;border-radius:5px;background:var(--perfusion-gradient)}

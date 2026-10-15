@@ -72,6 +72,9 @@ export function HeartScene() {
   const input = useStore((s) => s.input);
   const select = useStore((s) => s.select);
   const hover = useStore((s) => s.hover);
+  const resetCameraView = useCallback(() => {
+    useStore.setState((state) => ({resetNonce: state.resetNonce + 1}));
+  }, []);
   const [viewMode, setViewMode] = useState<HeartViewMode>('arteries');
   const [inspection, setInspection] = useState<ChamberSelection | null>(null);
   const [anchors, setAnchors] = useState<Record<string, THREE.Vector3>>({});
@@ -103,8 +106,14 @@ export function HeartScene() {
         <CameraRig anchors={anchors} />
       </Canvas>
 
-      <div className="tools view-tools" role="group" aria-label="Heart view mode">
+      <div className="tools view-tools" role="group" aria-label="Heart view controls">
         {modeOptions.map(([mode, label]) => <button key={mode} type="button" className="btn" aria-pressed={viewMode === mode} onClick={() => setViewMode(mode)}>{label}</button>)}
+        <button type="button" className="btn reset-view" aria-label="Reset view" onClick={resetCameraView}>
+          <svg aria-hidden="true" viewBox="0 0 16 16" focusable="false">
+            <path d="M3.2 6.2A5.1 5.1 0 1 1 3 9.7M3.2 2.7v3.8H7" />
+          </svg>
+          <span>Reset view</span>
+        </button>
       </div>
       {missing.length > 0 && <div className="warn" role="alert">The 3D model has no mesh named {missing.join(', ')}. Check config/arteries.json against the supplied GLB.</div>}
       {inspection && <AssessmentInspector selection={inspection} prediction={prediction} input={input} onClose={() => setInspection(null)} />}
