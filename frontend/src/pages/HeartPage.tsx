@@ -77,7 +77,9 @@ export function HeartPage() {
   const prediction = useStore((s) => s.prediction);
   const status = useStore((s) => s.status);
   const total = useStore((s) => Object.keys(s.input).length);
+  const input = useStore((s) => s.input);
   const cb = useStore((s) => s.settings.colorBlind);
+  const hasCore = input.Age !== undefined && input.Sex !== undefined && input.BP !== undefined;
   const live = status === 'loading' ? 'Updating…' : prediction ? 'Live result' : 'No result yet';
 
   return (
@@ -89,7 +91,12 @@ export function HeartPage() {
           <Row t="CAD" v={prediction?.cad ?? null} />
           {CONFIG.arteries.map((a) => <Row key={a.key} t={a.key as Target} v={prediction?.vessels[a.key] ?? null} />)}
         </div>
-        {!prediction && <p className="note">Enter values on <a href="#/input">Patient Data</a> to colour the arteries.</p>}
+        {!hasCore && (
+          <p className="note" style={{padding: '8px 10px', background: '#fef3c7', borderRadius: '6px', color: '#92400e', fontSize: '12px', lineHeight: 1.4}}>
+            Enter at least <b>Age</b>, <b>Sex</b>, and <b>Blood Pressure</b> on <a href="#/input" style={{fontWeight: 600, textDecoration: 'underline', color: '#92400e'}}>Patient Data</a> to generate a clinical risk assessment.
+          </p>
+        )}
+        {hasCore && !prediction && <p className="note">Enter values on <a href="#/input">Patient Data</a> to colour the arteries.</p>}
         <div className="key">
           <div className="gradbar" style={{background: cssGradient(cb)}} />
           <div className="ticks"><span>0%</span><span>{lo}%</span><span>{hi}%</span><span>100%</span></div>

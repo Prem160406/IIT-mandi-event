@@ -56,12 +56,29 @@ class Predictor:
         self.feature_names = expected
 
         ranges: dict[str, tuple[float, float]] = {}
+        neutral_defaults: dict[str, Any] = {}
         if features_config:
             for item in features_config.get("features", []):
+                fname = str(item["name"])
+                ftype = item.get("type")
+                cats = item.get("categories")
+                ref = item.get("reference_range")
                 ir = item.get("input_range")
                 if ir and len(ir) == 2 and ir[0] is not None and ir[1] is not None:
-                    ranges[str(item["name"])] = (float(ir[0]), float(ir[1]))
+                    ranges[fname] = (float(ir[0]), float(ir[1]))
+                if ftype == "binary":
+                    neutral_defaults[fname] = "N" if cats and "N" in cats else 0
+                elif ftype == "categorical":
+                    neutral_defaults[fname] = "N" if cats and "N" in cats else (cats[0] if cats else "N")
+                elif ftype == "ordinal":
+                    neutral_defaults[fname] = 0
+                elif ftype == "continuous":
+                    if ref and len(ref) == 2 and ref[0] is not None and ref[1] is not None:
+                        neutral_defaults[fname] = float(ref[0] + ref[1]) / 2.0
+                    else:
+                        neutral_defaults[fname] = 0.0
         self.input_ranges = ranges
+        self.neutral_defaults = neutral_defaults
 
     @classmethod
     def from_artifacts(
@@ -83,9 +100,9 @@ class Predictor:
     def prepare_input(self, features: Mapping[str, Any]) -> PreparedInput:
         """Build the exact training column set after removing outcomes.
 
-        The pipelines contain their own numerical/categorical imputers.  A
-        missing requested field is therefore represented by ``NaN`` while its
-        name is retained for transparency in the API response.
+        Unsupplied optional fields default to neutral/healthy adult reference
+        baselines from features.yaml, while retaining the names in missing_fields
+        for complete transparency.
         """
         raw = pd.DataFrame([dict(features)])
         raw = canonicalize_features(raw)
@@ -97,14 +114,17 @@ class Predictor:
 
         row: dict[str, Any] = {}
         for name in self.feature_names:
-            value = raw.iloc[0][name] if name in raw.columns else np.nan
-            if value is not None and not pd.isna(value) and hasattr(self, "input_ranges") and name in self.input_ranges:
-                try:
-                    num_val = float(value)
-                    min_val, max_val = self.input_ranges[name]
-                    value = max(min_val, min(max_val, num_val))
-                except (ValueError, TypeError):
-                    pass
+            if name in raw.columns and raw.iloc[0][name] is not None and not pd.isna(raw.iloc[0][name]):
+                value = raw.iloc[0][name]
+                if hasattr(self, "input_ranges") and name in self.input_ranges:
+                    try:
+                        num_val = float(value)
+                        min_val, max_val = self.input_ranges[name]
+                        value = max(min_val, min(max_val, num_val))
+                    except (ValueError, TypeError):
+                        pass
+            else:
+                value = getattr(self, "neutral_defaults", {}).get(name, np.nan)
             row[name] = np.nan if value is None else value
         return PreparedInput(pd.DataFrame([row], columns=self.feature_names), missing_fields)
 

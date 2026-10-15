@@ -116,7 +116,14 @@ export function InputPage() {
   const nKey = keyTyped.filter((s) => input[s.name] !== undefined).length;
   const nMore = moreSpecs.filter((s) => input[s.name] !== undefined).length;
   const total = Object.keys(input).length;
-  const state = status === 'loading' ? 'Calculating…' : prediction ? 'Result ready' : 'Waiting for values';
+  const hasCore = input.Age !== undefined && input.Sex !== undefined && input.BP !== undefined;
+  const state = status === 'loading'
+    ? 'Calculating…'
+    : prediction
+    ? 'Result ready'
+    : !hasCore
+    ? 'Enter Age, Sex, and BP for risk assessment'
+    : 'Waiting for values';
 
   return (
     <section className="page">

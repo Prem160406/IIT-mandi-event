@@ -77,8 +77,9 @@ export const useStore = create<Store>((set, get) => ({
     requestId++;
     clearTimeout(liveTimer);
     set({input, prediction: null, status: 'idle', error: null});
-    if (get().settings.live && Object.keys(input).length > 0) {
-      liveTimer = setTimeout(() => void get().predict(), 300); // debounce (roadmap 13.4)
+    const hasCore = input.Age !== undefined && input.Sex !== undefined && input.BP !== undefined;
+    if (get().settings.live && hasCore) {
+      liveTimer = setTimeout(() => void get().predict(), 300);
     }
   },
 
@@ -97,10 +98,16 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   predict: async () => {
+    const input = get().input;
+    const hasCore = input.Age !== undefined && input.Sex !== undefined && input.BP !== undefined;
+    if (!hasCore) {
+      set({prediction: null, status: 'idle'});
+      return;
+    }
     const id = ++requestId;
     set({status: 'loading', error: null, prediction: null});
     try {
-      const prediction = await api.predict(get().input);
+      const prediction = await api.predict(input);
       if (id !== requestId) return; // a newer request superseded this one
       set({prediction, status: 'ready', backend: 'up'});
     } catch (e) {
